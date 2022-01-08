@@ -2,7 +2,7 @@
 
 Allows C# To Call Julia
 
-Example USage:
+Example Usage:
 
 ```csharp
   Julia.Init();
