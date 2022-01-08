@@ -1,0 +1,6 @@
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\bin\Release\JuliaInterface.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\bin\Release\JuliaInterface.pdb
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\obj\Release\JuliaInterface.csproj.CoreCompileInputs.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\obj\Release\JuliaInterface.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\obj\Release\JuliaInterface.pdb
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JuliaInterface\obj\Release\JuliaInterface.csproj.AssemblyReference.cache
