@@ -68,5 +68,13 @@ namespace JuliaInterface
                 data[i] = p[i].ToPointer();
             return data;
         }
+
+        internal static unsafe void*[] ConvertPointerArray(params JLVal[] p)
+        {
+            var data = new void*[p.Length];
+            for (var i = 0; i < p.Length; ++i)
+                data[i] = p[i].ptr.ToPointer();
+            return data;
+        }
     }
 }

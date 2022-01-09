@@ -13,6 +13,9 @@ namespace JuliaInterface
 
         public static implicit operator IntPtr(JLArray value) => value.ptr;
         public static implicit operator JLArray(IntPtr ptr) => new JLArray(ptr);
+        public static implicit operator JLArray(JLVal ptr) => new JLArray(ptr);
+        public static implicit operator JLVal(JLArray ptr) => new JLVal(ptr);
+
 
         public static bool operator ==(JLArray value1, JLArray value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLArray value1, JLArray value2) => value1.ptr != value2.ptr;

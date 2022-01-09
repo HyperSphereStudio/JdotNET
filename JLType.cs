@@ -17,6 +17,8 @@ namespace JuliaInterface
 
         public static implicit operator IntPtr(JLType value) => value.ptr;
         public static implicit operator JLType(IntPtr ptr) => new JLType(ptr);
+        public static implicit operator JLType(JLVal ptr) => new JLType(ptr);
+        public static implicit operator JLVal(JLType ptr) => new JLVal(ptr);
 
         public static bool operator ==(JLType value1, JLType value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLType value1, JLType value2) => value1.ptr != value2.ptr;
@@ -25,6 +27,7 @@ namespace JuliaInterface
         public override int GetHashCode() => ptr.GetHashCode();
 
 
+        public static bool IsPointerType(object o) => o is JLVal || o is IntPtr || o is JLType || o is JLSym || o is JLModule || o is JLArray || o is JLFun;
 
         public static JLType JLInt64, JLInt32, JLInt16, JLInt8, JLUInt64, JLUInt32, JLUInt16, JLUInt8;
         public static JLType JLFloat64, JLFloat32;

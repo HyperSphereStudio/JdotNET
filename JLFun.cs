@@ -18,6 +18,8 @@ namespace JuliaInterface
 
         public static implicit operator IntPtr(JLFun value) => value.ptr;
         public static implicit operator JLFun(IntPtr ptr) => new JLFun(ptr);
+        public static implicit operator JLFun(JLVal ptr) => new JLFun(ptr);
+        public static implicit operator JLVal(JLFun ptr) => new JLVal(ptr);
 
         public static bool operator ==(JLFun value1, JLFun value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLFun value1, JLFun value2) => value1.ptr != value2.ptr;
@@ -26,11 +28,11 @@ namespace JuliaInterface
         public override int GetHashCode() => ptr.GetHashCode();
 
         public JLVal Invoke() => JuliaCalls.jl_call0(this);
-        public JLVal Invoke(IntPtr arg1) => JuliaCalls.jl_call1(this, arg1);
-        public JLVal Invoke(IntPtr arg1, IntPtr arg2) => JuliaCalls.jl_call2(this, arg1, arg2);
-        public JLVal Invoke(IntPtr arg1, IntPtr arg2, IntPtr arg3) => JuliaCalls.jl_call3(this, arg1, arg2, arg3);
+        public JLVal Invoke(JLVal arg1) => JuliaCalls.jl_call1(this, arg1);
+        public JLVal Invoke(JLVal arg1, JLVal arg2) => JuliaCalls.jl_call2(this, arg1, arg2);
+        public JLVal Invoke(JLVal arg1, JLVal arg2, JLVal arg3) => JuliaCalls.jl_call3(this, arg1, arg2, arg3);
         
-        public unsafe JLVal Invoke(params IntPtr[] args)
+        public unsafe JLVal Invoke(params JLVal[] args)
         {
             fixed (void** arr = Julia.ConvertPointerArray(args))
                 return JuliaCalls.jl_call(this, new IntPtr(arr), args.Length);

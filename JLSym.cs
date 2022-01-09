@@ -19,6 +19,8 @@ namespace JuliaInterface
         public static implicit operator string(JLSym sym) => new JLVal(sym.ptr).ToString();
         public static implicit operator IntPtr(JLSym value) => value.ptr;
         public static implicit operator JLSym(IntPtr ptr) => new JLSym(ptr);
+        public static implicit operator JLSym(JLVal ptr) => new JLSym(ptr);
+        public static implicit operator JLVal(JLSym ptr) => new JLVal(ptr.ptr);
 
         public static bool operator ==(JLSym value1, JLSym value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLSym value1, JLSym value2) => value1.ptr != value2.ptr;

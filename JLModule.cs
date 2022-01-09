@@ -17,6 +17,8 @@ namespace JuliaInterface
 
         public static implicit operator IntPtr(JLModule value) => value.ptr;
         public static implicit operator JLModule(IntPtr ptr) => new JLModule(ptr);
+        public static implicit operator JLModule(JLVal ptr) => new JLModule(ptr);
+        public static implicit operator JLVal(JLModule ptr) => new JLVal(ptr);
 
         public static bool operator ==(JLModule value1, JLModule value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLModule value1, JLModule value2) => value1.ptr != value2.ptr;
