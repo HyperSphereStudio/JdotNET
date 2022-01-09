@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+//Written by Johnathan Bizzano 
 namespace JuliaInterface
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -22,5 +23,15 @@ namespace JuliaInterface
 
         public override bool Equals(object o) => o is JLModule && ((JLModule)o).ptr == ptr;
         public override int GetHashCode() => ptr.GetHashCode();
+
+
+
+        public static JLModule Base, Core, Main;
+
+        internal static void init_mods(){
+            Base = Julia.Eval("Base").ptr;
+            Core = Julia.Eval("Core").ptr;
+            Main = Julia.Eval("Main").ptr;
+        }
     }
 }

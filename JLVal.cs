@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+//Written by Johnathan Bizzano 
 namespace JuliaInterface
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -20,7 +21,7 @@ namespace JuliaInterface
         public JLVal(bool l) : this(JuliaCalls.jl_box_bool(l)) { }
         public JLVal(double l) : this(JuliaCalls.jl_box_float64(l)) { }
         public JLVal(float l) : this(JuliaCalls.jl_box_float32(l)) { }
-        public JLVal(string s) : this(JuliaCalls.jl_box_string(s)) { }
+        public JLVal(string s) : this(JuliaCalls.jl_cstr_to_string(s)) { }
 
 
         public static implicit operator IntPtr(JLVal value) => value.ptr;
@@ -45,8 +46,17 @@ namespace JuliaInterface
 
         public double UnboxFloat64() => JuliaCalls.jl_unbox_float64(this);
         public float UnboxFloat32() => JuliaCalls.jl_unbox_float32(this);
+        public string UnboxString() => Marshal.PtrToStringAnsi(JuliaCalls.jl_string_ptr(this));
+
+        public uint Length() => JLFun.Length.Invoke(this).UnboxUInt32();
+
+        public JLType GetJLType() => new JLType(JLFun.TypeOf.Invoke(this));
+
+        public override string ToString() => JLFun.String.Invoke(this).UnboxString();
+
+        public void Println() => JLFun.Println.Invoke(this);
+        public void Print() => JLFun.Print.Invoke(this);
 
 
-        
     }
 }

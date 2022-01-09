@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+//Written By Johnathan Bizzano
 namespace JuliaInterface
 {
     public class JuliaCalls
     {
+
 
         [DllImport("kernel32.dll")]
         public static extern bool SetDllDirectory(string path);
@@ -18,6 +20,10 @@ namespace JuliaInterface
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void jl_atexit_hook(int hook);
+
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr jl_string_ptr(JLVal v);
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -93,6 +99,12 @@ namespace JuliaInterface
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLVal jl_box_voidpointer(IntPtr x);
 
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern JLVal jl_cstr_to_string(string s);
+
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern JLVal jl_call(JLFun f, IntPtr args, Int32 arg_count);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLVal jl_call0(JLFun f);
@@ -111,7 +123,55 @@ namespace JuliaInterface
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLSym jl_symbol(string sym);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int jl_types_equal(JLVal v1, JLVal v2);
 
+        
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void jl_exception_occurred();
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern JLVal jl_current_exception();
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void jl_exception_clear();
+        
+        
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH1(IntPtr p);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH2(IntPtr p, IntPtr p2);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH3(IntPtr p, IntPtr p2, IntPtr p3);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH4(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH5(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH6(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6);
+        
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_PUSH7(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6, IntPtr p7);
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void JL_GC_POP();
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void _JL_GC_PUSHARGS(IntPtr p, UIntPtr count);
+
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern string jl_typename_str(JLVal val);
+        
         public static JLFun jl_get_function(JLModule mod, JLSym sym) => new JLFun(jl_get_global(mod, sym));
+        
     }
 }

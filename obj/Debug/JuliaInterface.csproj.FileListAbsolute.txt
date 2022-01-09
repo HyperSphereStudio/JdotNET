@@ -1,0 +1,6 @@
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\bin\Debug\JuliaInterface.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\bin\Debug\JuliaInterface.pdb
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\obj\Debug\JuliaInterface.csproj.AssemblyReference.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\obj\Debug\JuliaInterface.csproj.CoreCompileInputs.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\obj\Debug\JuliaInterface.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.net\obj\Debug\JuliaInterface.pdb
