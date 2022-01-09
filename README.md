@@ -13,6 +13,10 @@ Example Usage:
   Julia.Eval("t(x) = x * 2");
   Julia.GetFunction(JLModule.Main, "t").Invoke(new JLVal(5)).Println();
 
+  //Version 0.0.2
+  JLFun fun = Julia.Eval("t(x) = x * 2");
+  fun.Invoke(5).Println();
+
   Julia.Exit(0);  
 ```
 
