@@ -21,6 +21,11 @@ Example Usage:
   JLFun fun = Julia.Eval("t(x) = x * 2");
   fun.Invoke(5).Println();   //Exception Checking
   fun.UnsafeInvoke(5).Println();   //No Exception Checking
+  
+  //Version 0.0.4
+  JLFun fun = Julia.Eval("t(x) = sqrt(x)");
+  double result = (double) fun.Invoke(2);
+  object dotNetObject = fun.Invoke(3).Value;
 
   Julia.Exit(0);  
 ```
