@@ -17,6 +17,11 @@ Example Usage:
   JLFun fun = Julia.Eval("t(x) = x * 2");
   fun.Invoke(5).Println();
 
+  //Version 0.0.3
+  JLFun fun = Julia.Eval("t(x) = x * 2");
+  fun.Invoke(5).Println();   //Exception Checking
+  fun.UnsafeInvoke(5).Println();   //No Exception Checking
+
   Julia.Exit(0);  
 ```
 
