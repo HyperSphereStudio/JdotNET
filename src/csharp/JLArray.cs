@@ -20,9 +20,10 @@ namespace JuliaInterface
         public static bool operator ==(JLArray value1, JLArray value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLArray value1, JLArray value2) => value1.ptr != value2.ptr;
 
-        public override bool Equals(object o) => o is JLArray && ((JLArray)o).ptr == ptr;
-        public override int GetHashCode() => ptr.GetHashCode();
-
+        public override bool Equals(object o) => new JLVal(this).Equals(o);
+        public override int GetHashCode() => new JLVal(this).GetHashCode();
+        public void Println() => new JLVal(this).Println();
+        public void Print() => new JLVal(this).Print();
 
     }
 }

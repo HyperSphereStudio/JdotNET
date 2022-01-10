@@ -42,15 +42,34 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JLArray.cs" />
-    <Compile Include="JLSym.cs" />
-    <Compile Include="JLType.cs" />
-    <Compile Include="JLModule.cs" />
-    <Compile Include="JLFun.cs" />
-    <Compile Include="JLVal.cs" />
-    <Compile Include="Julia.cs" />
-    <Compile Include="JuliaCalls.cs" />
+    <Compile Include="Resource1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource1.resx</DependentUpon>
+    </Compile>
+    <Compile Include="src\csharp\AddressHelper.cs" />
+    <Compile Include="src\csharp\NativeSharp.cs" />
+    <Compile Include="src\csharp\SizeT.cs" />
+    <Compile Include="src\csharp\JuliaException.cs" />
+    <Compile Include="src\csharp\JLBinding.cs" />
+    <Compile Include="src\csharp\JLArray.cs" />
+    <Compile Include="src\csharp\JLSym.cs" />
+    <Compile Include="src\csharp\JLType.cs" />
+    <Compile Include="src\csharp\JLModule.cs" />
+    <Compile Include="src\csharp\JLFun.cs" />
+    <Compile Include="src\csharp\JLVal.cs" />
+    <Compile Include="src\csharp\Julia.cs" />
+    <Compile Include="src\csharp\JuliaCalls.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource1.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\julia\JuliaInterface.jl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

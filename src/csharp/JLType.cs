@@ -23,16 +23,17 @@ namespace JuliaInterface
         public static bool operator ==(JLType value1, JLType value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLType value1, JLType value2) => value1.ptr != value2.ptr;
 
-        public override bool Equals(object o) => o is JLType && ((JLType)o).ptr == ptr;
-        public override int GetHashCode() => ptr.GetHashCode();
-
+        public override bool Equals(object o) => new JLVal(this).Equals(o);
+        public override int GetHashCode() => new JLVal(this).GetHashCode();
+        public void Println() => new JLVal(this).Println();
+        public void Print() => new JLVal(this).Print();
 
         public static bool IsPointerType(object o) => o is JLVal || o is IntPtr || o is JLType || o is JLSym || o is JLModule || o is JLArray || o is JLFun;
 
         public static JLType JLInt64, JLInt32, JLInt16, JLInt8, JLUInt64, JLUInt32, JLUInt16, JLUInt8;
         public static JLType JLFloat64, JLFloat32;
-        public static JLType JLString;
-
+        public static JLType JLString, JLBool, JLPtr;
+        public static JLType SharpObject;
 
         internal static void init_types()
         {
@@ -48,8 +49,10 @@ namespace JuliaInterface
 
             JLFloat64 = JuliaCalls.jl_get_global(JLModule.Core, "Float64").ptr;
             JLFloat32 = JuliaCalls.jl_get_global(JLModule.Core, "Float32").ptr;
-
+           
             JLString = JuliaCalls.jl_get_global(JLModule.Core, "String").ptr;
+            JLString = JuliaCalls.jl_get_global(JLModule.Core, "Ptr").ptr;
+            JLString = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpObject").ptr;
         }
     }
 }

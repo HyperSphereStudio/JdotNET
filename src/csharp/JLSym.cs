@@ -25,7 +25,9 @@ namespace JuliaInterface
         public static bool operator ==(JLSym value1, JLSym value2) => value1.ptr == value2.ptr;
         public static bool operator !=(JLSym value1, JLSym value2) => value1.ptr != value2.ptr;
 
-        public override bool Equals(object o) => o is JLSym && ((JLSym)o).ptr == ptr;
-        public override int GetHashCode() => ptr.GetHashCode();
+        public override bool Equals(object o) => new JLVal(ptr).Equals(o);
+        public override int GetHashCode() => new JLVal(ptr).GetHashCode();
+        public void Println() => new JLVal(ptr).Println();
+        public void Print() => new JLVal(ptr).Print();
     }
 }
