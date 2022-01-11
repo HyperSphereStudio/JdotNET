@@ -3,23 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <BaseOutputPath>bin5\</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj5\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <PackageProjectUrl>https://github.com/HyperSphereStudio/JULIA.Net</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="bin\**" />
     <Compile Remove="obj\**" />
-    <Compile Remove="PropertiesFramework\**" />
+    <Compile Remove="Properties\**" />
     <Compile Remove="Test\**" />
     <EmbeddedResource Remove="bin\**" />
     <EmbeddedResource Remove="obj\**" />
-    <EmbeddedResource Remove="PropertiesFramework\**" />
+    <EmbeddedResource Remove="Properties\**" />
     <EmbeddedResource Remove="Test\**" />
     <None Remove="bin\**" />
     <None Remove="obj\**" />
-    <None Remove="PropertiesFramework\**" />
+    <None Remove="Properties\**" />
     <None Remove="Test\**" />
   </ItemGroup>
 

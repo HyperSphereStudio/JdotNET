@@ -27,5 +27,13 @@ namespace TestJuliaInterface
 
         [Test]
         public void SharpInterface2() => Assert.DoesNotThrow(() => Julia.Eval("using Main.JuliaInterface"), "Julia Sharp Import Failure");
+
+        [Test]
+        public void FunctionParamTest(){
+            JLFun fun = Julia.Eval("t(x::Int) = Int32(x)");
+            Assert.AreEqual((IntPtr) JLType.JLInt32, (IntPtr) fun.ReturnType, "Julia Function Return Type Failure");
+            Assert.AreEqual((IntPtr) JLType.JLInt64, (IntPtr) fun.ParameterTypes[1], "Julia Function Parameter Type Failure");
+        }
+
     }
 }

@@ -31,8 +31,11 @@ namespace JuliaInterface
         public void Print() => new JLVal(this).Print();
 
         public long Size(int idx) => JuliaCalls.jl_array_size(this, idx);
-        public JLVal GetElement(JLVal idx) => JLFun.GetIndexF.Invoke(this, idx);
-        public JLVal SetElement(JLVal idx, JLVal v) => JLFun.SetIndex_F.Invoke(this, idx, v);
+
+        public JLVal this[int idx] {
+            get => JLFun.GetIndexF.Invoke(this, idx);
+            set => JLFun.SetIndex_F.Invoke(this, idx, value);
+        }
 
         public object[] LinearNetUnPack(){
             object[] arr = new object[Length];

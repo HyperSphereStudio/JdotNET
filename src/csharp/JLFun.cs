@@ -14,6 +14,11 @@ namespace JuliaInterface
     {
         internal IntPtr ptr;
 
+        public JLType ReturnType { get { return ((JLArray) JLModule.Base.GetFunction("return_types").Invoke(this))[1]; } }
+        
+        //Start at index 2
+        public JLSvec ParameterTypes { get { return GetFieldF.Invoke(GetFieldF.Invoke(((JLArray) JLModule.Base.GetFunction("methods").Invoke(this))[1], (JLSym) "sig"), (JLSym) "parameters"); } }
+
         public JLFun(IntPtr ptr) => this.ptr = ptr;
 
         public static implicit operator IntPtr(JLFun value) => value.ptr;
@@ -70,27 +75,29 @@ namespace JuliaInterface
         public static JLFun StringF, TypeOfF, PrintF, PrintlnF, 
                 GetIndexF, SetIndex_F, Push_F, Deleteat_F, 
                 CopyF, PointerF, LengthF, HashCodeF, SprintF, ShowErrorF,
-                GetFieldF, SetField_F;
+                GetFieldF, SetField_F, NamesF;
 
         
 
         internal static void init_funs(){
-            StringF = Julia.GetFunction(JLModule.Base, "string");
-            TypeOfF = Julia.GetFunction(JLModule.Base, "typeof");
-            PrintF = Julia.GetFunction(JLModule.Base, "print");
-            PrintlnF = Julia.GetFunction(JLModule.Base, "println");
-            GetIndexF = Julia.GetFunction(JLModule.Base, "getindex");
-            SetIndex_F = Julia.GetFunction(JLModule.Base, "setindex!");
-            Push_F = Julia.GetFunction(JLModule.Base, "push!");
-            Deleteat_F = Julia.GetFunction(JLModule.Base, "deleteat!");
-            CopyF = Julia.GetFunction(JLModule.Base, "copy");
-            PointerF = Julia.GetFunction(JLModule.Base, "pointer");
-            LengthF = Julia.GetFunction(JLModule.Base, "length");
-            HashCodeF = Julia.GetFunction(JLModule.Base, "hash");
-            SprintF = Julia.GetFunction(JLModule.Base, "sprint");
-            ShowErrorF = Julia.GetFunction(JLModule.Base, "showerror");
-            GetFieldF = Julia.GetFunction(JLModule.Base, "getfield");
-            SetField_F = Julia.GetFunction(JLModule.Base, "setfield!");
+            StringF = JLModule.Base.GetFunction("string");
+            TypeOfF = JLModule.Base.GetFunction("typeof");
+            PrintF = JLModule.Base.GetFunction("print");
+            PrintlnF = JLModule.Base.GetFunction("println");
+            GetIndexF = JLModule.Base.GetFunction("getindex");
+            SetIndex_F = JLModule.Base.GetFunction("setindex!");
+            Push_F = JLModule.Base.GetFunction("push!");
+            Deleteat_F = JLModule.Base.GetFunction("deleteat!");
+            CopyF = JLModule.Base.GetFunction("copy");
+            PointerF = JLModule.Base.GetFunction("pointer");
+            LengthF = JLModule.Base.GetFunction("length");
+            HashCodeF = JLModule.Base.GetFunction("hash");
+            SprintF = JLModule.Base.GetFunction("sprint");
+            ShowErrorF = JLModule.Base.GetFunction("showerror");
+            GetFieldF = JLModule.Base.GetFunction("getfield");
+            SetField_F = JLModule.Base.GetFunction("setfield!");
+            NamesF = JLModule.Base.GetFunction("names");
+
         }
     }
 }

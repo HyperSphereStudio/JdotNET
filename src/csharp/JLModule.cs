@@ -13,6 +13,8 @@ namespace JuliaInterface
     {
         internal IntPtr ptr;
 
+        public JLArray Symbols { get { return JLFun.NamesF.Invoke(this); }  }
+
         public JLModule(IntPtr ptr) => this.ptr = ptr;
 
         public static implicit operator IntPtr(JLModule value) => value.ptr;
@@ -28,7 +30,8 @@ namespace JuliaInterface
         public override int GetHashCode() => new JLVal(this).GetHashCode();
         public void Println() => new JLVal(this).Println();
         public void Print() => new JLVal(this).Print();
-
+        public JLVal GetGlobal(JLSym name) => Julia.GetGlobal(this, name);
+        public JLFun GetFunction(string name) => Julia.GetFunction(this, name);
 
 
         public static JLModule Base, Core, Main, JuliaInterface;
