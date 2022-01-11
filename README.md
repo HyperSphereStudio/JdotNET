@@ -38,7 +38,7 @@ Lets say we have the following C# class:
 ```csharp
 public class TestClass{
     public long g;
-    public TestClass(object g) => this.g = (long) g;
+    public TestClass(long g) => this.g = g;
 }
 ```
 
