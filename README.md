@@ -55,3 +55,7 @@ o = sharpCon(6) #Create Instance
 sharpField = SharpField(sharpType, "g") #Get Field
 println(sharpField(o)) #Get Field Value
 ```
+
+
+
+Library Written by Johnathan Bizzano
