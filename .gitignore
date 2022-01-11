@@ -1,5 +1,5 @@
-bin5/
-obj5/
-Test/bin/
-Test/obj/
-.vs/
+bin5/*
+obj5/*
+Test/bin/*
+Test/obj/*
+.vs/*
