@@ -47,7 +47,7 @@ public class TestClass{
 We can then in Julia use this class with the following code:
 ```julia
 sharpType = SharpType("TestClass")  #Create Type
-sharpCon = SharpConstructor(sharpType, 0)  #Get Constructor
+sharpCon = SharpConstructor(sharpType, 0)  #Get Constructor at Index 0
 o = sharpCon(6) #Create Instance
 sharpField = SharpField(sharpType, "g") #Get Field
 println(sharpField(o)) #Get Field Value
