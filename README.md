@@ -34,6 +34,8 @@ Example Usage:
 
 The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code).
 
+WARNING: THIS FEATURE IS VERY EXPERIMENTAL AT THE MOMENT
+
 Lets say we have the following C# class:
 ```csharp
 public class TestClass{
