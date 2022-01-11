@@ -19,7 +19,7 @@ Function Handling:
   JLType willBeInt32 = fun.ReturnType;
   
   int resultWillBe4 = (int) fun.Invoke(2);
-  object willReturnNetBoxed4 = fun.Invoke(3).Value;
+  object willReturnNetBoxed4 = fun.Invoke(2).Value;
 ```
 
 Exception Handling:
