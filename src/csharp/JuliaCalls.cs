@@ -8,10 +8,6 @@ namespace JuliaInterface
     public class JuliaCalls
     {
 
-
-        [DllImport("kernel32.dll")]
-        public static extern bool SetDllDirectory(string path);
-
         
         public enum JLIMAGESEARCH{
             JL_IMAGE_CWD = 0,

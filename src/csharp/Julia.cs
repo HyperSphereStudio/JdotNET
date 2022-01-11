@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.IO;
 
 //Written by Johnathan Bizzano 
 namespace JuliaInterface
@@ -15,10 +16,11 @@ namespace JuliaInterface
 
         public static void Init()
         {
+            var os = OperatingEnvironment.GetEnvironment();
             var proc = new Process {
                 StartInfo = new ProcessStartInfo {
-                    FileName = "where.exe",
-                    Arguments = "Julia",
+                    FileName = os.GetWhereExe(),
+                    Arguments = "julia",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     CreateNoWindow = true
@@ -28,25 +30,26 @@ namespace JuliaInterface
             while (!proc.StandardOutput.EndOfStream)
             {
                 string location = proc.StandardOutput.ReadLine();
-                if (location.Contains("julia.exe")){
-                    Init(location.Substring(1, location.Length - 11));
+                if (location.Contains("julia")){
+                    location = os.TrimJuliaPath(location);
+                    Init(location);
                     return;
-                }
-                    
+                }   
             }
             throw new Exception("Julia Path Not Found");
         }
 
-        
 
         public static void Init(string dir){
-            JuliaCalls.SetDllDirectory(dir);
+            var env = Environment.CurrentDirectory;
+            Environment.CurrentDirectory = dir;
             JuliaCalls.jl_init();
             JuliaCalls.jl_eval_string(System.Text.Encoding.UTF8.GetString(Resource1.JuliaInterface));
             JLModule.init_mods();
             JLType.init_types();
             JLFun.init_funs();
             NativeSharp.init();
+            Environment.CurrentDirectory = env;
         }
 
         public static void SetGlobal(JLModule m, JLSym sym, JLVal val)
@@ -68,6 +71,7 @@ namespace JuliaInterface
         }
 
         public static void Exit(int code) => JuliaCalls.jl_atexit_hook(code);
+
         public static JLVal Eval(string str){
             var val = JuliaCalls.jl_eval_string(str);
             CheckExceptions();
