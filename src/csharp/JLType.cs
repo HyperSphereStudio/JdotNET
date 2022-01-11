@@ -20,8 +20,9 @@ namespace JuliaInterface
         public static implicit operator JLType(JLVal ptr) => new JLType(ptr);
         public static implicit operator JLVal(JLType ptr) => new JLVal(ptr);
 
-        public static bool operator ==(JLType value1, JLType value2) => value1.ptr == value2.ptr;
-        public static bool operator !=(JLType value1, JLType value2) => value1.ptr != value2.ptr;
+        public static bool operator ==(JLType value1, IntPtr value2) => new JLVal(value1.ptr) == new JLVal(value2);
+        public static bool operator !=(JLType value1, IntPtr value2) => new JLVal(value1.ptr) != new JLVal(value2);
+        public override string ToString() => new JLVal(ptr).ToString();
 
         public override bool Equals(object o) => new JLVal(this).Equals(o);
         public override int GetHashCode() => new JLVal(this).GetHashCode();
@@ -33,7 +34,7 @@ namespace JuliaInterface
         public static JLType JLInt64, JLInt32, JLInt16, JLInt8, JLUInt64, JLUInt32, JLUInt16, JLUInt8;
         public static JLType JLFloat64, JLFloat32;
         public static JLType JLString, JLBool, JLPtr;
-        public static JLType SharpObject;
+        public static JLType SharpObject, SharpMethod, SharpConstructor, SharpField, SharpType;
 
         internal static void init_types()
         {
@@ -51,8 +52,14 @@ namespace JuliaInterface
             JLFloat32 = JuliaCalls.jl_get_global(JLModule.Core, "Float32").ptr;
            
             JLString = JuliaCalls.jl_get_global(JLModule.Core, "String").ptr;
-            JLString = JuliaCalls.jl_get_global(JLModule.Core, "Ptr").ptr;
-            JLString = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpObject").ptr;
+            JLBool = JuliaCalls.jl_get_global(JLModule.Core, "Bool").ptr;
+            JLPtr = JuliaCalls.jl_get_global(JLModule.Core, "Ptr").ptr;
+
+            SharpMethod = JuliaCalls.jl_get_global(JLModule.Core, "SharpMethod").ptr;
+            SharpObject = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpObject").ptr;
+            SharpConstructor = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpConstructor").ptr;
+            SharpField = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpField").ptr;
+            SharpType = JuliaCalls.jl_get_global(JLModule.JuliaInterface, "SharpType").ptr;
         }
     }
 }

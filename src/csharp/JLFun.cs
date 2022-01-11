@@ -21,9 +21,9 @@ namespace JuliaInterface
         public static implicit operator JLFun(JLVal ptr) => new JLFun(ptr);
         public static implicit operator JLVal(JLFun ptr) => new JLVal(ptr);
 
-        public static bool operator ==(JLFun value1, JLFun value2) => value1.ptr == value2.ptr;
-        public static bool operator !=(JLFun value1, JLFun value2) => value1.ptr != value2.ptr;
-
+        public static bool operator ==(JLFun value1, IntPtr value2) => new JLVal(value1) == new JLVal(value2);
+        public static bool operator !=(JLFun value1, IntPtr value2) => new JLVal(value1) != new JLVal(value2);
+        public override string ToString() => new JLVal(this).ToString();
         public override bool Equals(object o) => new JLVal(this).Equals(o);
         public override int GetHashCode() => new JLVal(this).GetHashCode();
         public void Println() => new JLVal(this).Println();

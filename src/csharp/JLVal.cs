@@ -35,10 +35,10 @@ namespace JuliaInterface
                     return UnboxUInt16();
                 else if (IsUInt8())
                     return UnboxUInt8();
-                else if (IsPtr())
-                    return UnboxPtr();
                 else if (IsSharpObject())
                     return UnboxSharpObject();
+                else if (IsPtr())
+                    return UnboxPtr();
                 else return this;
             }
         }
@@ -109,7 +109,7 @@ namespace JuliaInterface
         public IntPtr UnboxPtr() => JuliaCalls.jl_unbox_voidpointer(this);
         public string UnboxString() => Julia.UnboxString(this);
 
-        public object UnboxSharpObject() => JLFun.GetFieldF.Invoke(this, (JLSym) "ptr").UnboxPtr();
+        public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) JLFun.GetFieldF.Invoke(this, (JLSym) "ptr").UnboxInt64());
 
         public bool IsFloat64() => JuliaCalls.jl_isa(this, JLType.JLFloat64) != 0;
         public bool IsFloat32() => JuliaCalls.jl_isa(this, JLType.JLFloat32) != 0;
@@ -125,6 +125,9 @@ namespace JuliaInterface
         public bool IsBool() => JuliaCalls.jl_isa(this, JLType.JLBool) != 0;
         public bool IsPtr() => JuliaCalls.jl_isa(this, JLType.JLPtr) != 0;
         public bool IsSharpObject() => JuliaCalls.jl_isa(this, JLType.SharpObject) != 0;
+
+        public JLVal GetFieldValue(JLSym fieldName) => JLFun.GetFieldF.Invoke(this, fieldName);
+        public JLVal SetFieldValue(JLSym fieldName, JLVal v) => JLFun.SetField_F.Invoke(this, fieldName, v);
 
         public SizeT Length() => JLFun.LengthF.Invoke(this);
         public JLType GetJLType() => new JLType(JLFun.TypeOfF.Invoke(this));
@@ -164,7 +167,7 @@ namespace JuliaInterface
                 else if (o is IntPtr)
                     return Julia.BoxPtr((IntPtr) o);
                 else
-                    return Julia.CreateStruct(JLType.SharpObject, Julia.BoxPtr(AddressHelper.GetAddress(o)));
+                    return Julia.CreateStruct(JLType.SharpObject, AddressHelper.GetAddress(o).ToInt64());
             }
         }
 

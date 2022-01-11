@@ -6,34 +6,69 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Reflection;
 
+//Written by Johnathan Bizzano
+
 namespace JuliaInterface
 {
     internal class NativeSharp
     {
-        delegate long SharpConstructor(long clazz, int idx);
-        delegate long SharpMethod(long clazz, string method);
-        delegate long SharpClass(string clazz);
-        delegate long SharpField(long clazz, string field);
-        delegate JLVal SharpGetFieldValue(long field, long owner);
-        delegate void SharpSetFieldValue(long field, long owner, long val);
+        delegate JLVal SharpInvoke(JLVal invokable, JLArray parameters);
+        delegate JLVal SharpConstructor(JLVal clazz, int idx);
+        delegate JLVal SharpMethod(JLVal clazz, string method);
+        delegate JLVal SharpClass(string clazz);
+        delegate JLVal SharpField(JLVal clazz, string field);
+
+        private static T ReadSharpVal<T>(long l) => AddressHelper.GetInstance<T>((IntPtr) l);
+        private static T GetSharpVal<T>(JLVal sharpObject) => ReadSharpVal<T>((long) JLFun.GetFieldF.Invoke(sharpObject, (JLSym)"ptr"));
+        private static long WriteSharpVal(object o) => AddressHelper.GetAddress(o).ToInt64();
+        private static JLVal CreateJuliaVal(JLType t, object o) => Julia.CreateStruct(t, WriteSharpVal(o));
 
         internal unsafe static void init(){
-            SharpConstructor GetConstructor = (clazz, idx) => AddressHelper.GetInstance<Type>((IntPtr) clazz).GetConstructors()[idx].MethodHandle.GetFunctionPointer().ToInt64();
-            SharpMethod GetMethod = (clazz, method) => AddressHelper.GetInstance<Type>((IntPtr) clazz).GetMethod(method).MethodHandle.GetFunctionPointer().ToInt64();
-            SharpClass GetClass = clazz => AddressHelper.GetAddress(Type.GetType(clazz)).ToInt64();
-            SharpField GetField = (clazz, field) => AddressHelper.GetAddress(AddressHelper.GetInstance<Type>((IntPtr) clazz).GetField(field)).ToInt64();
-            SharpGetFieldValue GetFieldValue = (field, owner) => (JLVal) AddressHelper.GetInstance<FieldInfo>((IntPtr) field).GetValue(owner);
-            SharpSetFieldValue SetFieldValue = (field, owner, value) => AddressHelper.GetInstance<FieldInfo>((IntPtr) field).SetValue(owner, AddressHelper.GetInstance<object>((IntPtr) value));
+            SharpConstructor GetConstructor = (clazz, idx) => CreateJuliaVal(JLType.SharpConstructor, GetSharpVal<Type>(clazz).GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)[idx]);
+            SharpMethod GetMethod = (clazz, method) => CreateJuliaVal(JLType.SharpMethod, GetSharpVal<Type>(clazz).GetMethod(method, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
+            SharpClass GetClass = clazz => CreateJuliaVal(JLType.SharpType, Type.GetType(clazz));
+            SharpField GetField = (clazz, field) => CreateJuliaVal(JLType.SharpField, GetSharpVal<Type>(clazz).GetField(field, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
+            
+            SharpInvoke SharpInvoke = (val, parameters) => {
+                var invokable = GetSharpVal<object>(val);
+                var p = parameters.LinearNetUnPack();
+                if (invokable is MethodInfo)
+                {
+                    var met = (MethodInfo)invokable;
+                    if (met.IsStatic)
+                        return (JLVal)met.Invoke(null, p);
+                    object[] result = new object[p.Length - 1];
+                    Array.Copy(p, 1, result, 0, p.Length - 1);
+                    return new JLVal(met.Invoke(p[1], result));
+                }
+                else if (invokable is ConstructorInfo)
+                    return new JLVal(((ConstructorInfo)invokable).Invoke(p));
+                else if (invokable is FieldInfo){
+                    var fi = ((FieldInfo)invokable);
+                    if (fi.IsStatic && p.Length == 0)
+                        return new JLVal(fi.GetValue(null));
+                    else if(fi.IsStatic && p.Length == 1)
+                    {
+                        fi.SetValue(null, p[0]);
+                        return new JLVal(0);
+                    }else if(!fi.IsStatic && p.Length == 1){
+                        return new JLVal(fi.GetValue(p[0]));
+                    }else if (!fi.IsStatic && p.Length == 2){
+                        fi.SetValue(p[0], p[1]);
+                        return new JLVal(0);
+                    }
+                    throw new Exception("Invalid Field Invokation!");
+                }
+                else throw new Exception("Unknown Object Invokation");                  
+            };
 
-            Console.WriteLine("Alloc Pointer!");
             Julia.GetFunction(JLModule.JuliaInterface, "initialize_library")
                    .Invoke(Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(GetClass)),
                            Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(GetMethod)),
                            Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(GetConstructor)),
                            Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(GetField)),
-                           Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(GetFieldValue)),
-                           Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(SetFieldValue)));
-           // Julia.GetFunction(JLModule.JuliaInterface, "testCall").Invoke();
+                           Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(SharpInvoke)));
+     
         }
     }
 }

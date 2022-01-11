@@ -22,9 +22,9 @@ namespace JuliaInterface
         public static implicit operator JLSym(JLVal ptr) => new JLSym(ptr);
         public static implicit operator JLVal(JLSym ptr) => new JLVal(ptr.ptr);
 
-        public static bool operator ==(JLSym value1, JLSym value2) => value1.ptr == value2.ptr;
-        public static bool operator !=(JLSym value1, JLSym value2) => value1.ptr != value2.ptr;
-
+        public static bool operator ==(JLSym value1, IntPtr value2) => new JLVal(value1.ptr) == new JLVal(value2);
+        public static bool operator !=(JLSym value1, IntPtr value2) => new JLVal(value1.ptr) != new JLVal(value2);
+        public override string ToString() => new JLVal(ptr).ToString();
         public override bool Equals(object o) => new JLVal(ptr).Equals(o);
         public override int GetHashCode() => new JLVal(ptr).GetHashCode();
         public void Println() => new JLVal(ptr).Println();

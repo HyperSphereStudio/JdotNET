@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//Written by Johnathan Bizzano
 namespace JuliaInterface
 {
     public class JuliaException : Exception
