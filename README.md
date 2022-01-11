@@ -34,18 +34,20 @@ Example Usage:
 
 The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code).
 
+WARNING: THIS FEATURE IS VERY EXPERIMENTAL AT THE MOMENT
+
 Lets say we have the following C# class:
 ```csharp
 public class TestClass{
     public long g;
-    public TestClass(object g) => this.g = (long) g;
+    public TestClass(long g) => this.g = g;
 }
 ```
 
 We can then in Julia use this class with the following code:
 ```julia
 sharpType = SharpType("TestClass")  #Create Type
-sharpCon = SharpConstructor(sharpType, 0)  #Get Constructor
+sharpCon = SharpConstructor(sharpType, 0)  #Get Constructor at Index 0
 o = sharpCon(6) #Create Instance
 sharpField = SharpField(sharpType, "g") #Get Field
 println(sharpField(o)) #Get Field Value
