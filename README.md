@@ -13,7 +13,7 @@ Julia.Exit(0);
 Struct Handling:
 ```csharp
 
-   #You have to choices, allocate a struct or create a struct.
+   #You have two choices, allocate a struct or create a struct.
    #Allocating directly sets the memory, creating will call a constructor of the struct
    
    var myAllocatedStruct = Julia.AllocStruct(JLType.JLRef, 3);   //Will throw error
@@ -98,9 +98,9 @@ Julia Garbage Collector Pinning:
    myBasicObj = myBasicCon()
    handle = pin(myBasicObj)
    
-   //Stuff calling Sharp Functions
+   #Stuff calling Sharp Functions
    
-   free(handle) //Will also auto free. You can also treat it like stream and put it in do end block
+   free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
 ```
 
 
