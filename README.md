@@ -54,7 +54,7 @@ Array Handling:
    
    //Make own array
    var newArray = long[arr.Length];
-   for(int i = 1; i < arr.Length; ++i)
+   for(int i = 1; i <= arr.Length; ++i)
        newArray[i - 1] = (long) arr[i];
    
    JLType elementType = arr.ElType;
