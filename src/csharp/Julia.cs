@@ -8,7 +8,6 @@ using System.IO;
 //Written by Johnathan Bizzano 
 namespace JuliaInterface
 {
- 
 
     public class Julia
     {
@@ -49,8 +48,11 @@ namespace JuliaInterface
             JLType.init_types();
             JLFun.init_funs();
             NativeSharp.init();
+            ObjectCollector.init();
             Environment.CurrentDirectory = env;
         }
+
+        public static JLGCStub PinGC(IntPtr val) => ObjectCollector.PushJL(val);
 
         public static void SetGlobal(JLModule m, JLSym sym, JLVal val)
         {
@@ -91,7 +93,7 @@ namespace JuliaInterface
 
         public static JLVal BoxPtr(IntPtr ptr) => new JLVal(JuliaCalls.jl_box_voidpointer(ptr));
 
-        public static JLVal CreateStruct(JLType type, params JLVal[] vals) => JuliaCalls.jl_new_structv(type, vals, (uint) vals.Length);
+        public static JLVal AllocStruct(JLType type, params JLVal[] vals) => JuliaCalls.jl_new_structv(type, vals, (uint) vals.Length);
 
         internal static string MString(IntPtr p){
             CheckExceptions();

@@ -75,7 +75,7 @@ namespace JuliaInterface
         public static JLFun StringF, TypeOfF, PrintF, PrintlnF, 
                 GetIndexF, SetIndex_F, Push_F, Deleteat_F, 
                 CopyF, PointerF, LengthF, HashCodeF, SprintF, ShowErrorF,
-                GetFieldF, SetField_F, NamesF;
+                GetFieldF, SetField_F, NamesF, ElTypeF, SizeF;
 
         
 
@@ -97,7 +97,8 @@ namespace JuliaInterface
             GetFieldF = JLModule.Base.GetFunction("getfield");
             SetField_F = JLModule.Base.GetFunction("setfield!");
             NamesF = JLModule.Base.GetFunction("names");
-
+            ElTypeF = JLModule.Base.GetFunction("eltype");
+            SizeF = JLModule.Base.GetFunction("size");
         }
     }
 }

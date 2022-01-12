@@ -13,10 +13,14 @@ namespace JuliaInterface
         public SizeT(uint i) => p = new UIntPtr(i);
         public SizeT(ulong i) => p = new UIntPtr(i);
         public SizeT(JLVal v){
-            if (v.IsUInt64())
-                p = new UIntPtr((ulong)v);
-            else if (v.IsUInt32())
-                p = new UIntPtr((uint)v);
+            if (v.IsUInt64)
+                p = new UIntPtr((ulong) v);
+            else if (v.IsUInt32)
+                p = new UIntPtr((uint) v);
+            else if (v.IsInt32)
+                p = new UIntPtr((uint) v);
+            else if (v.IsInt64)
+                p = new UIntPtr((ulong) v);
             else
                 throw new Exception("Unknown Size T Value!");
         }

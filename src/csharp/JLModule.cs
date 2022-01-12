@@ -41,7 +41,6 @@ namespace JuliaInterface
             Core = Julia.Eval("Core").ptr;
             Main = Julia.Eval("Main").ptr;
             JuliaInterface = Julia.Eval("Main.JuliaInterface").ptr;
-
         }
     }
 }
