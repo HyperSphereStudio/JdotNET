@@ -110,7 +110,8 @@ namespace JuliaInterface
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern JLVal jl_call(JLFun f, IntPtr[] args, Int32 arg_count);
+        public static extern JLVal jl_call(JLFun f, JLVal[] args, Int32 arg_count);
+
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLVal jl_call0(JLFun f);
@@ -610,5 +611,11 @@ namespace JuliaInterface
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLVal jl_new_structv(JLType type, JLVal[] args, UInt32 na);
 
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern JLArray jl_apply_tuple_type_v(JLType[] types, SizeT nc);
+
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern JLArray jl_new_struct_uninit(JLType t);
     }
 }

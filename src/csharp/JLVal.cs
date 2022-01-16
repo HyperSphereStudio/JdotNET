@@ -19,10 +19,12 @@ namespace JuliaInterface
         public JLVal(uint l) : this(JuliaCalls.jl_box_uint32(l)) { }
         public JLVal(ushort l) : this(JuliaCalls.jl_box_uint16(l)) { }
         public JLVal(byte l) : this(JuliaCalls.jl_box_uint8(l)) { }
+        public JLVal(char l) : this(JuliaCalls.jl_box_int32(l)) { }
         public JLVal(bool l) : this(JuliaCalls.jl_box_bool(l)) { }
         public JLVal(double l) : this(JuliaCalls.jl_box_float64(l)) { }
         public JLVal(float l) : this(JuliaCalls.jl_box_float32(l)) { }
         public JLVal(string s) : this(JuliaCalls.jl_cstr_to_string(s)) { }
+        public JLVal(Type t) : this(Julia.AllocStruct(JLType.SharpType, AddressHelper.GetAddress(t))) { }
 
 
         public static implicit operator IntPtr(JLVal value) => value.ptr;
@@ -36,6 +38,7 @@ namespace JuliaInterface
         public static implicit operator JLVal(string l) => new JLVal(l);
         public static implicit operator JLVal(double l) => new JLVal(l);
         public static implicit operator JLVal(float l) => new JLVal(l);
+        public static implicit operator JLVal(char l) => new JLVal(l);
         public static implicit operator JLVal(bool l) => new JLVal(l);
         public static implicit operator JLVal(byte l) => new JLVal(l);
         public static implicit operator JLVal(sbyte l) => new JLVal(l);
@@ -49,6 +52,7 @@ namespace JuliaInterface
         public static explicit operator byte(JLVal value) => value.UnboxUInt8();
         public static explicit operator sbyte(JLVal value) => value.UnboxInt8();
         public static explicit operator string(JLVal value) => value.UnboxString();
+        public static explicit operator char(JLVal value) => value.UnboxChar();
         public static explicit operator bool(JLVal value) => value.UnboxBool();
         public static explicit operator double(JLVal value) => value.UnboxFloat64();
         public static explicit operator float(JLVal value) => value.UnboxFloat32();
@@ -59,25 +63,28 @@ namespace JuliaInterface
         public override bool Equals(object o) => o is JLVal && ((JLVal)o).ptr == ptr;
         public override int GetHashCode() => JLFun.HashCodeF.Invoke(this).UnboxInt32();
 
+        public unsafe long SizeOf { get => JLType.JLAny.IsType(this) ? sizeof(void*) : JLFun.SizeOfF.Invoke(this).UnboxInt64(); }
         public JLType ElType { get => JLFun.ElTypeF.Invoke(this); }
         public JLType Type { get => new JLType(JLFun.TypeOfF.Invoke(this)); }
         public SizeT Length { get => JLFun.LengthF.Invoke(this); }
-        public bool IsFloat64 { get => JuliaCalls.jl_isa(this, JLType.JLFloat64) != 0; }
-        public bool IsFloat32 { get => JuliaCalls.jl_isa(this, JLType.JLFloat32) != 0; }
-        public bool IsInt64 { get => JuliaCalls.jl_isa(this, JLType.JLInt64) != 0; }
-        public bool IsInt32 { get => JuliaCalls.jl_isa(this, JLType.JLInt32) != 0; }
-        public bool IsInt16 { get => JuliaCalls.jl_isa(this, JLType.JLInt16) != 0; }
-        public bool IsInt8 { get => JuliaCalls.jl_isa(this, JLType.JLInt8) != 0; }
-        public bool IsUInt64 { get => JuliaCalls.jl_isa(this, JLType.JLUInt64) != 0; }
-        public bool IsUInt32 { get => JuliaCalls.jl_isa(this, JLType.JLUInt32) != 0; }
-        public bool IsUInt16 { get => JuliaCalls.jl_isa(this, JLType.JLUInt16) != 0; }
-        public bool IsUInt8 { get => JuliaCalls.jl_isa(this, JLType.JLUInt8) != 0; }
-        public bool IsString { get => JuliaCalls.jl_isa(this, JLType.JLString) != 0; }
-        public bool IsBool { get => JuliaCalls.jl_isa(this, JLType.JLBool) != 0; }
-        public bool IsPtr { get => JuliaCalls.jl_isa(this, JLType.JLPtr) != 0; }
-        public bool IsSharpObject { get => JuliaCalls.jl_isa(this, JLType.SharpObject) != 0; }
+        public bool IsFloat64 { get => JLType.JLFloat64.IsType(this); }
+        public bool IsFloat32 { get => JLType.JLFloat32.IsType(this); }
+        public bool IsInt64 { get => JLType.JLInt64.IsType(this); }
+        public bool IsInt32 { get => JLType.JLInt32.IsType(this); }
+        public bool IsInt16 { get => JLType.JLInt16.IsType(this); }
+        public bool IsInt8 { get => JLType.JLInt8.IsType(this); }
+        public bool IsUInt64 { get => JLType.JLUInt64.IsType(this); }
+        public bool IsUInt32 { get => JLType.JLUInt32.IsType(this); }
+        public bool IsUInt16 { get => JLType.JLUInt16.IsType(this); }
+        public bool IsUInt8 { get => JLType.JLUInt8.IsType(this); }
+        public bool IsString { get => JLType.JLString.IsType(this); }
+        public bool IsBool { get => JLType.JLBool.IsType(this); }
+        public bool IsChar { get => JLType.JLChar.IsType(this); }
+        public bool IsPtr { get => JLType.JLPtr.IsType(this); }
+        public bool IsSharpObject { get => JLType.SharpObject.IsType(this); }
         public JLVal Size { get => JLFun.SizeF.Invoke(this); }
-        public bool IsNull { get => ptr == IntPtr.Zero; }
+        public bool IsNull { get => ptr == IntPtr.Zero || JLType.JLNothing.IsType(this); }
+        public bool IsSharpType { get => JLType.SharpType.IsType(this); }
 
         public object Value {
             get {
@@ -107,6 +114,10 @@ namespace JuliaInterface
                     return UnboxUInt8();
                 else if (IsSharpObject)
                     return UnboxSharpObject();
+                else if (IsSharpType)
+                    return UnboxSharpType();
+                else if (IsChar)
+                    return UnboxChar();
                 else if (IsPtr)
                     return UnboxPtr();
                 else if (IsNull)
@@ -127,10 +138,12 @@ namespace JuliaInterface
         public byte UnboxUInt8() => JuliaCalls.jl_unbox_uint8(this);
         public double UnboxFloat64() => JuliaCalls.jl_unbox_float64(this);
         public float UnboxFloat32() => JuliaCalls.jl_unbox_float32(this);
+        public char UnboxChar() => (char) JuliaCalls.jl_unbox_int32(this);
         public IntPtr UnboxPtr() => JuliaCalls.jl_unbox_voidpointer(this);
         public string UnboxString() => Julia.UnboxString(this);
-        public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) JLFun.GetFieldF.Invoke(this, (JLSym) "ptr").UnboxInt64());
-        
+        public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) GetFieldValue("ptr").UnboxInt64());
+        public Type UnboxSharpType() => (Type) UnboxSharpObject();
+
         public JLVal GetFieldValue(JLSym fieldName) => JLFun.GetFieldF.Invoke(this, fieldName);
         public JLVal SetFieldValue(JLSym fieldName, JLVal v) => JLFun.SetField_F.Invoke(this, fieldName, v);
 
@@ -139,15 +152,17 @@ namespace JuliaInterface
         public void Print() => JLFun.PrintF.Invoke(this);
         public JLGCStub Pin() => Julia.PinGC(this);
         public void Add(JLVal val) => JLFun.Push_F.Invoke(this, val);
+        public void Remove(JLVal val) => JLFun.Delete_F.Invoke(this, val);
         public void RemoveAt(JLVal idx) => JLFun.Deleteat_F.Invoke(this, idx);
+        public void RemoveAt(JLRange range) => JLFun.Deleteat_F.Invoke(this, range);
 
-        public JLVal this[int idx] {
+        public JLVal this[JLVal idx] {
             get => JLFun.GetIndexF.Invoke(this, idx);
-            set => setEl(idx, (JLVal) value);
+            set => setEl(idx, value);
         }
 
-        internal void setEl(int idx, JLVal val) => JLFun.SetIndex_F.Invoke(this, idx, val);
-
+        internal void setEl(long idx, JLVal val) => JLFun.SetIndex_F.Invoke(this, idx, val);
+        internal void setEl(JLArray idxs, JLVal val) => JLFun.SetIndex_F.Invoke(this, idxs, val);
 
         public static JLVal DotNotType(object o){
             if (JLType.IsPointerType(o))
@@ -179,6 +194,8 @@ namespace JuliaInterface
                     return new JLVal((string)o);
                 else if (o is IntPtr)
                     return Julia.BoxPtr((IntPtr) o);
+                else if(o is Type)
+                    return new JLVal((Type) o);
                 else
                     return Julia.AllocStruct(JLType.SharpObject, AddressHelper.GetAddress(o).ToInt64());
             }

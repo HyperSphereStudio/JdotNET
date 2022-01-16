@@ -26,6 +26,8 @@ namespace JuliaInterface
             }
         }
 
+        public static object GetInstance(IntPtr address) => GetInstance<object>(address);
+
         public static T GetInstance<T>(IntPtr address)
         {
             lock (AddressHelper.mutualobject)

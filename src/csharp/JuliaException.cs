@@ -10,9 +10,7 @@ namespace JuliaInterface
     public class JuliaException : Exception
     {
         private JLVal excep;
-        internal JuliaException(JLVal excep) { this.excep = excep; }
-
-        public void Resolve() => JuliaCalls.jl_exception_clear();
+        public JuliaException(JLVal excep) { this.excep = excep; }
 
         public override string ToString() => JLFun.SprintF.Invoke(JLFun.ShowErrorF, excep).UnboxString();
     }

@@ -10,48 +10,53 @@ namespace JuliaInterface
     {
         internal static object JLLock = new object(), CLock = new object();
         internal static JLArray JLcollector;
-        internal static List<object> Ccollector = new List<object>();
+        internal static HashSet<object> Ccollector = new HashSet<object>();
 
-        internal static void init() => JLcollector = new JLArray(JLType.JLAny, 0);
+        internal static void init() => JLcollector = Julia.Eval("const juliaCollector = Set{Any}()");
 
         internal static JLGCStub PushJL(JLVal val){
             lock (JLLock){
                 JLcollector.Add(val);
-                return new JLGCStub((int) JLcollector.Length);
+                return new JLGCStub(val.ptr);
             }
         }
 
-        internal static int PushCSharp(object val)
+        internal static long PushCSharp(object val)
         {
             lock (CLock)
             {
                 Ccollector.Add(val);
-                return Ccollector.Count - 1;
+                return AddressHelper.GetAddress(val).ToInt64();
             }
         }
 
         public static long JLObjLen { get => JLcollector.Length; }
         public static long CSharpObjLen { get => Ccollector.Count; }
+
+        internal static void Free(){
+            JLcollector.RemoveAt(new JLRange(1, JLcollector.Length));
+            Ccollector.Clear();
+        }
     }
 
     public class JLGCStub{
-        internal int idx;
+        internal IntPtr val;
         internal bool wasFreed = false;
 
         public bool Freed { get => wasFreed; internal set => wasFreed = value; }
 
-        internal JLGCStub(int idx) => this.idx = idx;
+        internal JLGCStub(IntPtr val) => this.val = val;
 
         ~JLGCStub() => Free();
 
-        public JLVal Value { get => ObjectCollector.JLcollector[idx]; set => ObjectCollector.JLcollector[idx] = value; }
+        public JLVal Value { get => val; }
 
         public void Free()
         {
-            if (!wasFreed)
-            {
+            if (!wasFreed){
                 wasFreed = true;
-                ObjectCollector.JLcollector.RemoveAt(idx);
+                if(Julia.IsInitialized)
+                    ObjectCollector.JLcollector.Remove(val);
             }
         }
 

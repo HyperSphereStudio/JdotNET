@@ -65,40 +65,66 @@ namespace JuliaInterface
             return val;
         }
 
+        public JLVal InvokeSplat(params JLVal[] args)
+        {
+            var val = UnsafeInvokeSplat(args);
+            Julia.CheckExceptions();
+            return val;
+        }
+
         public JLVal UnsafeInvoke() => JuliaCalls.jl_call0(this);
         public JLVal UnsafeInvoke(JLVal arg1) => JuliaCalls.jl_call1(this, arg1);
         public JLVal UnsafeInvoke(JLVal arg1, JLVal arg2) => JuliaCalls.jl_call2(this, arg1, arg2);
         public JLVal UnsafeInvoke(JLVal arg1, JLVal arg2, JLVal arg3) => JuliaCalls.jl_call3(this, arg1, arg2, arg3);
-        
-        public unsafe JLVal UnsafeInvoke(params JLVal[] args) => JuliaCalls.jl_call(this, args.Select(x => x.ptr).ToArray(), args.Length);
+        public unsafe JLVal UnsafeInvoke(params JLVal[] args) => JuliaCalls.jl_call(this, args, args.Length);
 
+        public unsafe JLVal UnsafeInvokeSplat(params JLVal[] args){
+            var newArr = new JLVal[args.Length + args[args.Length - 1].Length - 1];
+            Array.Copy(args, 0, newArr, 0, args.Length - 1);
+            var splatObj = args[args.Length - 1];
+
+            for (int d = args.Length - 1, s = 1, len = splatObj.Length; s <= len; ++s, ++d){
+                newArr[d] = splatObj[s];
+            }
+
+            return JuliaCalls.jl_call(this, newArr, newArr.Length);
+        }
+        
         public static JLFun StringF, TypeOfF, PrintF, PrintlnF, 
                 GetIndexF, SetIndex_F, Push_F, Deleteat_F, 
                 CopyF, PointerF, LengthF, HashCodeF, SprintF, ShowErrorF,
-                GetFieldF, SetField_F, NamesF, ElTypeF, SizeF;
+                GetFieldF, SetField_F, NamesF, ElTypeF, SizeF, FirstF, LastF, 
+                Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF;
 
-        
+        private static JLFun GetBFun(string name) => JLModule.Base.GetFunction(name);
 
         internal static void init_funs(){
-            StringF = JLModule.Base.GetFunction("string");
-            TypeOfF = JLModule.Base.GetFunction("typeof");
-            PrintF = JLModule.Base.GetFunction("print");
-            PrintlnF = JLModule.Base.GetFunction("println");
-            GetIndexF = JLModule.Base.GetFunction("getindex");
-            SetIndex_F = JLModule.Base.GetFunction("setindex!");
-            Push_F = JLModule.Base.GetFunction("push!");
-            Deleteat_F = JLModule.Base.GetFunction("deleteat!");
-            CopyF = JLModule.Base.GetFunction("copy");
-            PointerF = JLModule.Base.GetFunction("pointer");
-            LengthF = JLModule.Base.GetFunction("length");
-            HashCodeF = JLModule.Base.GetFunction("hash");
-            SprintF = JLModule.Base.GetFunction("sprint");
-            ShowErrorF = JLModule.Base.GetFunction("showerror");
-            GetFieldF = JLModule.Base.GetFunction("getfield");
-            SetField_F = JLModule.Base.GetFunction("setfield!");
-            NamesF = JLModule.Base.GetFunction("names");
-            ElTypeF = JLModule.Base.GetFunction("eltype");
-            SizeF = JLModule.Base.GetFunction("size");
+            StringF = GetBFun("string");
+            TypeOfF = GetBFun("typeof");
+            PrintF = GetBFun("print");
+            PrintlnF = GetBFun("println");
+            GetIndexF = GetBFun("getindex");
+            SetIndex_F = GetBFun("setindex!");
+            Push_F = GetBFun("push!");
+            Deleteat_F = GetBFun("deleteat!");
+            Delete_F = GetBFun("delete!");
+            CopyF = GetBFun("copy");
+            PointerF = GetBFun("pointer");
+            LengthF = GetBFun("length");
+            HashCodeF = GetBFun("hash");
+            SprintF = GetBFun("sprint");
+            ShowErrorF = GetBFun("showerror");
+            GetFieldF = GetBFun("getfield");
+            SetField_F = GetBFun("setfield!");
+            NamesF = GetBFun("names");
+            ElTypeF = GetBFun("eltype");
+            SizeF = GetBFun("size");
+            FirstF = GetBFun("first");
+            LastF = GetBFun("last");
+            BroadCastF = GetBFun("broadcast");
+            IterateF = GetBFun("iterate");
+            EachIndexF = GetBFun("eachindex");
+            SizeOfF = GetBFun("sizeof");
         }
     }
 }

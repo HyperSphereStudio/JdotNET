@@ -11,6 +11,10 @@ namespace JuliaInterface
 
     public class Julia
     {
+        private static bool _IsInitialized = false;
+
+        public static bool IsInitialized { get => _IsInitialized; }
+
         public string LibDirectory { get => MString(JuliaCalls.jl_get_libdir()); }
 
         public static void Init()
@@ -40,10 +44,13 @@ namespace JuliaInterface
 
 
         public static void Init(string dir){
+            if (IsInitialized) throw new Exception("Already Started Julia!");
+            _IsInitialized = true;
             var env = Environment.CurrentDirectory;
             Environment.CurrentDirectory = dir;
             JuliaCalls.jl_init();
             JuliaCalls.jl_eval_string(System.Text.Encoding.UTF8.GetString(Resource1.JuliaInterface));
+
             JLModule.init_mods();
             JLType.init_types();
             JLFun.init_funs();
@@ -52,6 +59,9 @@ namespace JuliaInterface
             Environment.CurrentDirectory = env;
         }
 
+     
+        public static bool Isa(JLVal v, JLType t) => JuliaCalls.jl_isa(v, t) != 0;
+        
         public static JLGCStub PinGC(IntPtr val) => ObjectCollector.PushJL(val);
 
         public static void SetGlobal(JLModule m, JLSym sym, JLVal val)
@@ -72,7 +82,12 @@ namespace JuliaInterface
                 throw new JuliaException(JuliaCalls.jl_exception_occurred());
         }
 
-        public static void Exit(int code) => JuliaCalls.jl_atexit_hook(code);
+        public static void Exit(int code)
+        {
+            if (!IsInitialized) throw new Exception("Not Initialized!");
+            _IsInitialized = false;
+            JuliaCalls.jl_atexit_hook(code);
+        }
 
         public static JLVal Eval(string str){
             var val = JuliaCalls.jl_eval_string(str);
@@ -90,10 +105,10 @@ namespace JuliaInterface
         public static string UnboxString(JLVal val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_string_ptr(val));
         public static string TypeNameStr(JLVal val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_typename_str(val));
         public static string TypeOfStr(JLVal val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_typeof_str(val));
-
         public static JLVal BoxPtr(IntPtr ptr) => new JLVal(JuliaCalls.jl_box_voidpointer(ptr));
-
         public static JLVal AllocStruct(JLType type, params JLVal[] vals) => JuliaCalls.jl_new_structv(type, vals, (uint) vals.Length);
+        
+        // public static JLArray CreateTuple(params JLVal[] vals) => ;
 
         internal static string MString(IntPtr p){
             CheckExceptions();
