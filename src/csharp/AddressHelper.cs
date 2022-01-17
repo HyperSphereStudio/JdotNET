@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace JuliaInterface
 {
-    internal static class AddressHelper
+    public static class AddressHelper
     {
         private static object mutualobject;
         private static objectReinterpreter reinterpreter;

@@ -1,7 +1,7 @@
 "Written by Johnathan Bizzano"
 module JuliaInterface
 
-	export SharpField, SharpType, SharpConstructor, SharpObject, SharpMethod, free, pin, @T_str, @P_str, @G_str, @R_str, sharptype, sharpbox, sharpunbox, @netusing
+	export method_argnames, SharpField, SharpType, SharpConstructor, SharpObject, SharpMethod, free, pin, @T_str, @P_str, @G_str, @R_str, sharptype, sharpbox, sharpunbox, @netusing
 
 	_SharpGetMethod = nothing
 	_SharpGetGenericMethod = nothing
@@ -19,6 +19,11 @@ module JuliaInterface
 	_SharpBox = nothing
 	_SharpUnBox = nothing
 	
+	function method_argnames(m::Method)
+           argnames = ccall(:jl_uncompress_argnames, Vector{Symbol}, (Any,), m.slot_syms)
+           isempty(argnames) && return argnames
+           return [string(sym) for sym in argnames[1:m.nargs][2:end]]
+    end
 
 	"Container for a sharp field"
 	struct SharpField

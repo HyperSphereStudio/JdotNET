@@ -81,6 +81,8 @@ namespace JuliaInterface
             set { array.SetValue(value, _indices); }
         }
 
+        public int[] Index { get => _indices; }
+
         public void Reset()
         {
             index = startIndex - 1;

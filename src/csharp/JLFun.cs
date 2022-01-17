@@ -19,6 +19,7 @@ namespace JuliaInterface
         //Start at index 2
         public JLSvec ParameterTypes { get { return GetFieldF.Invoke(GetFieldF.Invoke(((JLArray) JLModule.Base.GetFunction("methods").Invoke(this))[1], (JLSym) "sig"), (JLSym) "parameters"); } }
 
+        public JLArray ParameterNames { get { return JLFun.MethodArgNamesF.Invoke(this); } }
         public JLFun(IntPtr ptr) => this.ptr = ptr;
 
         public static implicit operator IntPtr(JLFun value) => value.ptr;
@@ -94,7 +95,7 @@ namespace JuliaInterface
                 GetIndexF, SetIndex_F, Push_F, Deleteat_F, 
                 CopyF, PointerF, LengthF, HashCodeF, SprintF, ShowErrorF,
                 GetFieldF, SetField_F, NamesF, ElTypeF, SizeF, FirstF, LastF, 
-                Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF;
+                Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF, MethodArgNamesF;
 
         private static JLFun GetBFun(string name) => JLModule.Base.GetFunction(name);
 
@@ -125,6 +126,8 @@ namespace JuliaInterface
             IterateF = GetBFun("iterate");
             EachIndexF = GetBFun("eachindex");
             SizeOfF = GetBFun("sizeof");
+
+            MethodArgNamesF = JLModule.JuliaInterface.GetFunction("method_argnames");
         }
     }
 }
