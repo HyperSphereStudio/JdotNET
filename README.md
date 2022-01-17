@@ -93,13 +93,8 @@ Keep In mind that there is another way to pin Julia objects using Julia.PUSHGC()
 
 Julia Garbage Collector Pinning:
 ```julia
-   myBasicType = SharpType("MyBasicType")
-   myBasicCon = SharpConstructor(myBasicType)
-   myBasicObj = myBasicCon()
-   handle = pin(myBasicObj)
-   
+   handle = pin(sharpbox(5))
    #Stuff calling Sharp Functions
-   
    free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
 ```
 
@@ -108,23 +103,82 @@ Julia Garbage Collector Pinning:
 
 The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code).
 
-Lets say we have the following C# class:
+Lets say we have the following C# classes:
 ```csharp
-public class TestClass{
-    public long g;
-    public TestClass(long g) => this.g = g;
+namespace Test{
+   public class ReflectionTestClass{
+        public long g;
+        public static int TestStaticField = 5;
+        public ReflectionTestClass(long g) { this.g = g; }
+        public long InstanceMethod() => 5;
+        public static long StaticMethod() => 5;
+        public static long StaticGenericMethod<T>() => 3;
+    }
+
+    public class ReflectionGenericTestClass<T>
+    {
+        public T g;
+        public ReflectionGenericTestClass(T g) { this.g = g; }
+    }
 }
 ```
 
-We can then in Julia use this class with the following code:
+The Sharp Type object allows one to access .NET class fields, methods and constructors from julia
+Accessing Sharp Types From Julia:
 ```julia
-sharpType = SharpType("TestClass")  #Create Type
-sharpCon = SharpConstructor(sharpType, 0)  #Get Constructor at Index 0
-o = sharpCon(6) #Create Instance
-sharpField = SharpField(sharpType, "g") #Get Field
-println(sharpField(o)) #Get Field Value
+   myClass = T"Test.ReflectionTestClass"   #<= Perform Assembly Search and Return the Sharp Type
+   
+   myClass2 = P"Test.ReflectionTestClass"   #<= Perform one time assembly search and store the sharp type in a internal array (Reccommended for fast lookups)
+   
+   myClass3 = G"Test.ReflectionTestClass"   #Get from internal array
+   
+   myClass4 = R"Test.ReflectionTestClass"   #Remove from internal array
 ```
 
+
+The using statement From Julia enables a user to shorten the length of a type name required
+```julia
+   myClass1 = T"System.Int64"   #<= Will Work But It is long to type
+   myClass2 = T"Int64"   #<= Will Fail
+   @netusing System
+   myClass3 = T"Int64"   #<= Will Work
+```
+
+Field Invokation:
+```julia
+   @netusing Test
+   shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
+   
+   T"ReflectionTestClass".TestStateField[] = 3 #To Set a Field. An error will occur if you dont put [].
+```
+
+Method Invokation:
+```julia
+   @netusing Test
+   @netusing System
+   shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
+   shouldBe5 = T"ReflectionTestClass".StaticMethod[]() #To call a method. If you dont put [] or () then it will just return the MethodInfo object
+   shouldBe3 = T"ReflectionTestClass".StaticGenericMethod[T"Int64"]() "To call a generic method, put the generic types in []
+```
+
+Constructor Invokation:
+```julia
+   @netusing Test
+   @netusing System
+   item = T""TestJuliaInterface.ReflectionTestClass"".new[](3)     #To call a constructor.  If you dont put [] or () then it will just return the ConstructorInfo object
+   shouldBe5 = item.InstanceMethod[]();   #To call a instance method
+   
+   shouldBe3 = item.g[]       #To Access a instance field
+   
+   myGenericItem = T"TestJuliaInterface.ReflectionGenericTestClass`1".new[T"System.Int64"](3)    #To Create a generic instance of an object, put the generic types in [].
+   
+```
+
+Boxing/Unboxing is converting a julia value from/to a sharp value from julia:
+```julia
+   boxed5 = sharpbox(5)   #Will return the sharp object of the long value "5"
+   shouldBe5 = shapunbox(boxed5) #Will unbox the sharp object and return to native julia value
+```
 
 
 Library Written by Johnathan Bizzano
