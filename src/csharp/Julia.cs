@@ -17,7 +17,7 @@ namespace JuliaInterface
 
         public string LibDirectory { get => MString(JuliaCalls.jl_get_libdir()); }
 
-        public static void Init()
+        private static string JuliaDir()
         {
             var os = OperatingEnvironment.GetEnvironment();
             var proc = new Process {
@@ -33,13 +33,23 @@ namespace JuliaInterface
             while (!proc.StandardOutput.EndOfStream)
             {
                 string location = proc.StandardOutput.ReadLine();
-                if (location.Contains("julia")){
+                if (location.Contains("julia"))
+                {
                     location = os.TrimJuliaPath(location);
-                    Init(location);
-                    return;
-                }   
+                    return location;
+                }
             }
-            throw new Exception("Julia Path Not Found");
+            return null;
+        }
+
+        public static bool IsInstalled() => JuliaDir() != null;
+
+        public static void Init()
+        {
+            var path = JuliaDir();
+            if(path == null) 
+                throw new Exception("Julia Path Not Found");
+            Init(path);
         }
 
 
