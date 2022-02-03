@@ -11,7 +11,7 @@ namespace JuliaInterface
 
     public class Julia
     {
-        private static bool _IsInitialized = false;
+        private static volatile bool _IsInitialized = false;
 
         public static bool IsInitialized { get => _IsInitialized; }
 
@@ -32,17 +32,19 @@ namespace JuliaInterface
             proc.Start();
             while (!proc.StandardOutput.EndOfStream)
             {
-                string location = proc.StandardOutput.ReadLine();
-                if (location.Contains("julia"))
+                var locations = proc.StandardOutput.ReadLine().Split('\n');
+                foreach(var location in locations)
                 {
-                    location = os.TrimJuliaPath(location);
-                    return location;
+                    if (location.Contains("julia") && location.Contains("bin")){
+                        return os.TrimJuliaPath(location);
+                    }
                 }
             }
             return null;
         }
 
         public static bool IsInstalled() => JuliaDir() != null;
+
 
         public static void Init()
         {
@@ -51,22 +53,21 @@ namespace JuliaInterface
                 throw new Exception("Julia Path Not Found");
             Init(path);
         }
-
-
+       
         public static void Init(string dir){
-            if (IsInitialized) throw new Exception("Already Started Julia!");
-            _IsInitialized = true;
-            var env = Environment.CurrentDirectory;
-            Environment.CurrentDirectory = dir;
-            JuliaCalls.jl_init();
-            JuliaCalls.jl_eval_string(System.Text.Encoding.UTF8.GetString(Resource1.JuliaInterface));
+                if (_IsInitialized) return;
+                _IsInitialized = true;
+                var env = Environment.CurrentDirectory;
+                Environment.CurrentDirectory = dir;
+                JuliaCalls.jl_init();
+                JuliaCalls.jl_eval_string(System.Text.Encoding.UTF8.GetString(Resource1.JuliaInterface));
 
-            JLModule.init_mods();
-            JLType.init_types();
-            JLFun.init_funs();
-            NativeSharp.init();
-            ObjectCollector.init();
-            Environment.CurrentDirectory = env;
+                JLModule.init_mods();
+                JLType.init_types();
+                JLFun.init_funs();
+                NativeSharp.init();
+                ObjectCollector.init();
+                Environment.CurrentDirectory = env;
         }
 
      
@@ -94,9 +95,9 @@ namespace JuliaInterface
 
         public static void Exit(int code)
         {
-            if (!IsInitialized) throw new Exception("Not Initialized!");
-            _IsInitialized = false;
-            JuliaCalls.jl_atexit_hook(code);
+                if (!IsInitialized) return;
+                _IsInitialized = false;
+                JuliaCalls.jl_atexit_hook(code);
         }
 
         public static JLVal Eval(string str){

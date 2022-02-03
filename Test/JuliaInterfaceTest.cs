@@ -56,6 +56,11 @@ namespace TestJuliaInterface
             Assert.IsTrue(Enumerable.SequenceEqual((long[]) arr.UnboxInt64Array(), new long[] {2, 3, 4}), "Int Array copy failed");
             arr = Julia.Eval("[2.0, 3.0, 4.0]");
             Assert.IsTrue(Enumerable.SequenceEqual((double[]) arr.UnboxFloat64Array(), new double[] { 2, 3, 4 }), "Double Array copy failed");
+
+            JLVal a = new object[]{ 2 };
+
+            Assert.IsTrue(a == Julia.Eval("[2]"), "Julia Array Box Conversion Failure");
+          //  Assert.IsTrue(a.Value == new object[] { 2 }, "Julia Array Unbox Conversion Failure");
         }
 
     }

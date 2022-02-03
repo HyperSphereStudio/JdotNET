@@ -154,7 +154,7 @@ namespace JuliaInterface
                             if (args.Length == 1)
                             {
                                 f.SetValue(null, args[0]);
-                                return null;
+                                return IntPtr.Zero;
                             }
                             else if (args.Length == 0)
                             {
@@ -164,7 +164,7 @@ namespace JuliaInterface
                         else if (args.Length == 2)
                         {
                             f.SetValue(args[0], args[1]);
-                            return null;
+                            return IntPtr.Zero;
                         }
                         else if (args.Length == 1)
                         {

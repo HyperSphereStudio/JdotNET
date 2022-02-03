@@ -41,7 +41,7 @@ namespace JuliaInterface
 
         public static JLType JLInt64, JLInt32, JLInt16, JLInt8, JLUInt64, JLUInt32, JLUInt16, JLUInt8;
         public static JLType JLFloat64, JLFloat32, JLChar;
-        public static JLType JLString, JLBool, JLPtr, JLAny, JLRef, JLNothing;
+        public static JLType JLString, JLBool, JLPtr, JLAny, JLRef, JLNothing, JLArray;
         public static JLType SharpObject, SharpMethod, SharpConstructor, SharpField, SharpType, SharpStub;
         public static JLType JLUnitRange, JLStepRange;
         public static JLType SharpJLException;
@@ -72,6 +72,7 @@ namespace JuliaInterface
             JLPtr = GetType(Core, "Ptr");
             JLRef = GetType(Core, "Ref");
             JLNothing = GetType(Core, "Nothing");
+            JLArray = GetType(Core, "Array");
 
             SharpMethod = GetType(JLModule.JuliaInterface, "SharpMethod");
             SharpObject = GetType(JLModule.JuliaInterface, "SharpObject");

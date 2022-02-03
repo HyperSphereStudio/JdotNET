@@ -108,7 +108,7 @@ namespace JuliaInterface
         public JLArray(JLType type, long length) : this(JuliaCalls.jl_alloc_array_1d(JuliaCalls.jl_apply_array_type(type, 1), length)) { }
         public JLArray(JLType type, long row, long col) : this(JuliaCalls.jl_alloc_array_2d(JuliaCalls.jl_apply_array_type(type, 2), row, col)) { }
         public JLArray(JLType type, long row, long col, long depth) : this(JuliaCalls.jl_alloc_array_3d(JuliaCalls.jl_apply_array_type(type, 3), row, col, depth)) { }
-        
+        public JLArray(Array a) : this(BoxArray<object>(a, JLType.JLAny, v => new JLVal(v))) { }
         public JLArray(IntPtr ptr) => this.ptr = ptr;
 
         public static implicit operator IntPtr(JLArray value) => value.ptr;
@@ -155,8 +155,29 @@ namespace JuliaInterface
             return arr;
         }
 
+        private static unsafe JLArray BoxArray<T>(Array a, JLType elType, Func<T, JLVal> boxLambda){
+            var dims = (JLVal) new JLArray(JLType.JLInt64, a.Rank);
+
+            for (int i = 0; i < a.Rank; ++i)
+                dims[i + 1] = (long) a.GetLength(i);
+
+            var jlarray = JLFun.MakeArrayF.Invoke(elType, dims);
+            var iter = JLFun.EachIndexF.Invoke(jlarray);
+            var next = JLFun.IterateF.Invoke(iter);
+            var arriter = new ArrayEnumerator(a);
+
+            while (arriter.MoveNext())
+            {
+                var state = next[2];
+                jlarray[next[1]] = boxLambda((T) arriter.Current);
+                next = JLFun.IterateF.Invoke(iter, state);
+            }
+
+            return jlarray;
+        }
+
         //TODO: If elType != Any && elType == this.GetJLType() => Copy Memory Directly
-        private unsafe Array UnboxArray<T>(JLType elType, Func<JLVal, T> unboxLambda)
+        private unsafe Array UnboxArray<T>(Func<JLVal, T> unboxLambda)
         {
             var dims = Size._UnboxLongArray();
             var arr = Array.CreateInstance(typeof(T), dims);
@@ -173,21 +194,21 @@ namespace JuliaInterface
             return arr;
         }
 
-        public Array UnboxInt64Array() => UnboxArray(JLType.JLInt64, (v) => v.UnboxInt64());
-        public Array UnboxInt32Array() => UnboxArray(JLType.JLInt32, (v) => v.UnboxInt32());
-        public Array UnboxInt16Array() => UnboxArray(JLType.JLInt16, (v) => v.UnboxInt16());
-        public Array UnboxInt8Array() => UnboxArray(JLType.JLInt8, (v) => v.UnboxInt8());
-        public Array UnboxBoolArray() => UnboxArray(JLType.JLBool, (v) => v.UnboxBool());
-        public Array UnboxFloat64Array() => UnboxArray(JLType.JLFloat64, (v) => v.UnboxFloat64());
-        public Array UnboxFloat32Array() => UnboxArray(JLType.JLFloat32, (v) => v.UnboxFloat32());
-        public Array UnboxPtrArray() => UnboxArray(JLType.JLPtr, (v) => v.UnboxPtr());
-        public Array UnboxObjectArray() => UnboxArray(JLType.SharpObject, (v) => v.Value);
-        public Array UnboxUInt64Array() => UnboxArray(JLType.JLUInt64, (v) => v.UnboxUInt64());
-        public Array UnboxUInt32Array() => UnboxArray(JLType.JLUInt32, (v) => v.UnboxUInt32());
-        public Array UnboxUInt16Array() => UnboxArray(JLType.JLUInt16, (v) => v.UnboxUInt16());
-        public Array UnboxUInt8Array() => UnboxArray(JLType.JLUInt8, (v) => v.UnboxUInt8());
-        public Array UnboxCharArray() => UnboxArray(JLType.JLChar, (v) => v.UnboxChar());
-        public Array UnboxStringArray() => UnboxArray(JLType.JLString, (v) => v.UnboxString());
+        public Array UnboxInt64Array() => UnboxArray(v => v.UnboxInt64());
+        public Array UnboxInt32Array() => UnboxArray(v => v.UnboxInt32());
+        public Array UnboxInt16Array() => UnboxArray(v => v.UnboxInt16());
+        public Array UnboxInt8Array() => UnboxArray(v => v.UnboxInt8());
+        public Array UnboxBoolArray() => UnboxArray(v => v.UnboxBool());
+        public Array UnboxFloat64Array() => UnboxArray(v => v.UnboxFloat64());
+        public Array UnboxFloat32Array() => UnboxArray(v => v.UnboxFloat32());
+        public Array UnboxPtrArray() => UnboxArray(v => v.UnboxPtr());
+        public Array UnboxObjectArray() => UnboxArray(v => v.Value);
+        public Array UnboxUInt64Array() => UnboxArray(v => v.UnboxUInt64());
+        public Array UnboxUInt32Array() => UnboxArray(v => v.UnboxUInt32());
+        public Array UnboxUInt16Array() => UnboxArray(v => v.UnboxUInt16());
+        public Array UnboxUInt8Array() => UnboxArray(v => v.UnboxUInt8());
+        public Array UnboxCharArray() => UnboxArray(v => v.UnboxChar());
+        public Array UnboxStringArray() => UnboxArray(v => v.UnboxString());
 
 
     }

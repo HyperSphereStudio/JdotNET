@@ -40,6 +40,7 @@ namespace JuliaInterface
         public JLVal(double l) : this(JuliaCalls.jl_box_float64(l)) { }
         public JLVal(float l) : this(JuliaCalls.jl_box_float32(l)) { }
         public JLVal(string s) : this(JuliaCalls.jl_cstr_to_string(s)) { }
+        public JLVal(Array a) : this(new JLArray(a)) { }
         public JLVal(Type t) : this(Julia.AllocStruct(JLType.SharpType, AddressHelper.GetAddress(t))) { }
 
 
@@ -58,6 +59,7 @@ namespace JuliaInterface
         public static implicit operator JLVal(bool l) => new JLVal(l);
         public static implicit operator JLVal(byte l) => new JLVal(l);
         public static implicit operator JLVal(sbyte l) => new JLVal(l);
+        public static implicit operator JLVal(Array l) => new JLVal(l);
 
         public static explicit operator long(JLVal value) => value.UnboxInt64();
         public static explicit operator ulong(JLVal value) => value.UnboxUInt64();
@@ -72,9 +74,14 @@ namespace JuliaInterface
         public static explicit operator bool(JLVal value) => value.UnboxBool();
         public static explicit operator double(JLVal value) => value.UnboxFloat64();
         public static explicit operator float(JLVal value) => value.UnboxFloat32();
+        public static explicit operator Array(JLVal value) => value.UnboxArray();
 
-        public static bool operator ==(JLVal value1, JLVal value2) => value1.ptr == value2.ptr;
-        public static bool operator !=(JLVal value1, JLVal value2) => value1.ptr != value2.ptr;
+        public static bool operator ==(JLVal value1, JLVal value2) => JLFun.IsEqualF.Invoke(value1, value2).UnboxBool();
+        public static bool operator !=(JLVal value1, JLVal value2) => JLFun.IsNEqualF.Invoke(value1, value2).UnboxBool();
+        public static bool operator >(JLVal value1, JLVal value2) => JLFun.IsGreaterF.Invoke(value1, value2).UnboxBool();
+        public static bool operator <(JLVal value1, JLVal value2) => JLFun.IsLessF.Invoke(value1, value2).UnboxBool();
+        public static bool operator >=(JLVal value1, JLVal value2) => JLFun.IsGreaterOrEqualF.Invoke(value1, value2).UnboxBool();
+        public static bool operator <=(JLVal value1, JLVal value2) => JLFun.IsLessOrEqualF.Invoke(value1, value2).UnboxBool();
 
         public override bool Equals(object o) => o is JLVal && ((JLVal)o).ptr == ptr;
         public override int GetHashCode() => JLFun.HashCodeF.Invoke(this).UnboxInt32();
@@ -97,6 +104,7 @@ namespace JuliaInterface
         public bool IsBool { get => JLType.JLBool.IsType(this); }
         public bool IsChar { get => JLType.JLChar.IsType(this); }
         public bool IsPtr { get => JLType.JLPtr.IsType(this); }
+        public bool IsArray { get => JLType.JLArray.IsType(this); }
         public bool IsSharpObject { get => JLType.SharpObject.IsType(this); }
         public JLVal Size { get => JLFun.SizeF.Invoke(this); }
         public bool IsNull { get => ptr == IntPtr.Zero || JLType.JLNothing.IsType(this); }
@@ -132,6 +140,8 @@ namespace JuliaInterface
                     return UnboxSharpObject();
                 else if (IsSharpType)
                     return UnboxSharpType();
+                else if (IsArray)
+                    return UnboxArray();
                 else if (IsChar)
                     return UnboxChar();
                 else if (IsPtr)
@@ -159,6 +169,7 @@ namespace JuliaInterface
         public string UnboxString() => Julia.UnboxString(this);
         public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) GetFieldValue("ptr").UnboxInt64());
         public Type UnboxSharpType() => (Type) UnboxSharpObject();
+        public Array UnboxArray() => new JLArray((IntPtr) this).UnboxObjectArray();
 
         public JuliaValue GetJuliaValue() => new JuliaValue(this);
 
@@ -179,8 +190,8 @@ namespace JuliaInterface
             set => setEl(idx, value);
         }
 
-        internal void setEl(long idx, JLVal val) => JLFun.SetIndex_F.Invoke(this, idx, val);
-        internal void setEl(JLArray idxs, JLVal val) => JLFun.SetIndex_F.Invoke(this, idxs, val);
+        internal void setEl(long idx, JLVal val) => JLFun.SetIndex_F.Invoke(this, val, idx);
+        internal void setEl(JLArray idxs, JLVal val) => JLFun.SetIndex_F.Invoke(this, val, idxs);
 
         public static JLVal DotNotType(object o){
             if (JLType.IsPointerType(o))
@@ -209,10 +220,12 @@ namespace JuliaInterface
                 else if (o is bool)
                     return new JLVal((bool)o);
                 else if (o is string)
-                    return new JLVal((string)o);
+                    return new JLVal((string) o);
+                else if (o is Array)
+                    return new JLVal((Array) o);
                 else if (o is IntPtr)
                     return Julia.BoxPtr((IntPtr) o);
-                else if(o is Type)
+                else if (o is Type)
                     return new JLVal((Type) o);
                 else
                     return Julia.AllocStruct(JLType.SharpObject, AddressHelper.GetAddress(o).ToInt64());

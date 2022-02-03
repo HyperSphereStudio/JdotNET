@@ -1,7 +1,7 @@
 "Written by Johnathan Bizzano"
 module JuliaInterface
 
-	export method_argnames, SharpField, SharpType, SharpConstructor, SharpObject, SharpMethod, free, pin, @T_str, @P_str, @G_str, @R_str, sharptype, sharpbox, sharpunbox, @netusing
+	export method_argnames, SharpField, SharpType, SharpConstructor, SharpObject, SharpMethod, free, pin, @T_str, @P_str, @G_str, @R_str, sharptype, sharpbox, sharpunbox, @netusing, makearray
 
 	_SharpGetMethod = nothing
 	_SharpGetGenericMethod = nothing
@@ -268,6 +268,8 @@ module JuliaInterface
 		argSyms = [Symbol("arg$i") for i in 1:length(argtypes)]
 		return Core.eval(Main.JuliaInterface, Expr(:(->), Expr(:tuple, argSyms...), Expr(:call, :ccall, addr, ret, Expr(:tuple, argtypes...), argSyms...)))
 	end
+
+	makearray(T, dims) = Array{T}(undef, dims...)
 
 	function initialize_library(getClazz, getMethod, getGenericMethod, getConstructor, getGenericConstructor, getField, 
 			sharpInvoke, sharpPinGC, sharpFreeGC, sharpGetType, sharpEquals, sharpToString,
