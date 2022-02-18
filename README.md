@@ -2,6 +2,14 @@ Julia.NET is an API designed to go between .NET and the Julia Language. It utili
 
 This is a very new library (created a couple days ago) so there is alot of things that can be added / fixed!
 
+Command Line Arguments
+```csharp
+JuliaOptions options = new JuliaOptions();
+options.ThreadCount = 4;
+Julia.Init(options);
+```
+
+
 
 Evaluation:
 ```csharp
