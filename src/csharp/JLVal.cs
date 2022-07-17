@@ -4,21 +4,6 @@ using System.Runtime.InteropServices;
 //Written by Johnathan Bizzano 
 namespace JuliaInterface
 {
-    public class JuliaValue{
-        internal readonly JLVal ptr;
-
-        public JuliaValue(IntPtr ptr)
-        {
-            this.ptr = ptr;
-        }
-
-        public override string ToString() => ptr.ToString();
-        public override int GetHashCode() => ptr.GetHashCode();
-
-
-        public IntPtr Data { get => ptr; }
-    }
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct JLVal
@@ -170,9 +155,6 @@ namespace JuliaInterface
         public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) GetFieldValue("ptr").UnboxInt64());
         public Type UnboxSharpType() => (Type) UnboxSharpObject();
         public Array UnboxArray() => new JLArray((IntPtr) this).UnboxObjectArray();
-
-        public JuliaValue GetJuliaValue() => new JuliaValue(this);
-
         public JLVal GetFieldValue(JLSym fieldName) => JLFun.GetFieldF.Invoke(this, fieldName);
         public JLVal SetFieldValue(JLSym fieldName, JLVal v) => JLFun.SetField_F.Invoke(this, fieldName, v);
 
