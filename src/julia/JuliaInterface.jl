@@ -215,40 +215,42 @@ module JuliaInterface
 	
 	function typefind(mod, type) 
 		if !hasproperty(mod, :NETNAMESPACE)
-			Core.eval(mod, :(NETNAMESPACE = Symbol[]))
+			Core.eval(mod, :(NETNAMESPACE = String[]))
 		end
 		storage = getproperty(mod, :NETNAMESPACE)
-		st = SharpType(string(type))
+
+		st = SharpType(type)
+		(st.ptr != 0) && return st
+
 		for i in length(storage):-1:1
+			st = SharpType("$(replace(storage[i])).$type")
 			(st.ptr != 0) && return st
-			st = SharpType("$(storage[i]).$type") 
 		end
+
 		return st
 	end
 
 	macro netusing(namespace)
+		namespace = string(namespace)
 		if !hasproperty(__module__, :NETNAMESPACE)
-			Core.eval(__module__, :(NETNAMESPACE = Symbol[]))
+			Core.eval(__module__, :(NETNAMESPACE = String[]))
 		end
 		storage = getproperty(__module__, :NETNAMESPACE)
 		idx = findfirst(==(namespace), storage)
-		if idx != nothing
-			deleteat!(storage, idx)
-		end
-		push!(storage, namespace)
+		namespace in storage || (push!(storage, namespace))
+		return nothing
 	end
 	
-    TypeMap = Dict{Symbol, SharpType}()
+    TypeMap = Dict{String, SharpType}()
 
 	"Perform a static lookup of the Sharp Type. If using the same type multiple times, use P,G & R version to store then remove from local storage"
 	macro T_str(type)
-		type = Symbol(type)
-		return typefind(__module__, type)
+		return typefind(__module__, string(type))
 	end
 	
 	"Push local type to local storage for fast lookup"
 	macro P_str(type)
-		type = Symbol(type)
+		type = string(type)
 		stype = typefind(__module__, type)
 		TypeMap[type] = stype
 		return stype
@@ -256,12 +258,12 @@ module JuliaInterface
 		
 	"Get type from local storage"
 	macro G_str(type)
-		return TypeMap[Symbol(type)]
+		return TypeMap[string(type)]
 	end
 	
 	"Remove type from local storage"
 	macro R_str(type)
-		return pop!(TypeMap, Symbol(type))
+		return pop!(TypeMap, string(type))
 	end
 
 	function gen_ccall(addr, ret, argtypes...)

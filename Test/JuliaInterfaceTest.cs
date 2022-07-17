@@ -6,8 +6,6 @@ using System.Linq;
 namespace TestJuliaInterface
 {
     public class Initialization{
-        [OneTimeTearDown]
-        public void Finish() => Julia.Exit(0);
 
         [OneTimeSetUp]
         public void Setup() => Julia.Init();
@@ -24,9 +22,6 @@ namespace TestJuliaInterface
 
     public class JuliaTest
     {
-        [OneTimeTearDown]
-        public void Finish() => Julia.Exit(0);
-
         [OneTimeSetUp]
         public void Setup() => Julia.Init();
 
@@ -69,33 +64,27 @@ namespace TestJuliaInterface
     [SingleThreaded]
     public class SharpTest
     {
-        
-        [OneTimeTearDown]
-        public void Finish() => Julia.Exit(0);
-
         [OneTimeSetUp]
         public void Setup()
         {
             Julia.Init();
-            Julia.Eval("using Main.JuliaInterface");
+            Julia.Eval(@"@netusing System
+                         @netusing TestJuliaInterface");
         }
 
         [Test]
         public void SharpType() => Assert.IsFalse(((JLVal) JLType.SharpType).IsNull, "Julia Type Import Failure");
 
-        [Test]
-        public void SharpUsing() => Assert.DoesNotThrow(() => Julia.Eval("using Main.JuliaInterface"), "Julia Sharp Import Failure");
-
 
         [Test]
         public void Construction(){
             Assert.IsFalse(Julia.Eval(@"
-                        item = T""TestJuliaInterface.ReflectionTestClass"".new[](3)
+                        item = T""ReflectionTestClass"".new[](3)
                         return item
                         ").IsNull, "Object instantiation failure");
 
             Assert.IsFalse(Julia.Eval(@"
-                        itemG = T""TestJuliaInterface.ReflectionGenericTestClass`1"".new[T""System.Int64""](3)
+                        itemG = T""ReflectionGenericTestClass`1"".new[T""System.Int64""](3)
                         return itemG
                         ").IsNull, "Generic Object instantiation failure");
         }
@@ -105,26 +94,26 @@ namespace TestJuliaInterface
             if (!Julia.Eval("@isdefined itemG").UnboxBool())
                 Construction();
             Assert.AreEqual(3, Julia.Eval("itemG.g[]").Value, "Failed to Get Field");
-            Assert.AreEqual(5, Julia.Eval(@"T""TestJuliaInterface.ReflectionTestClass"".TestStaticField[]").Value);
+            Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".TestStaticField[]").Value);
         }
 
         [Test]
         public void Method()
         {
-            Assert.AreEqual(5, Julia.Eval(@"T""TestJuliaInterface.ReflectionTestClass"".StaticMethod[]()").Value);
-            //Assert.AreEqual(3, Julia.Eval(@"T""TestJuliaInterface.ReflectionTestClass"".StaticGenericMethod[T""System.Int64""]()").Value);
+            Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".StaticMethod[]()").Value);
+            //Assert.AreEqual(3, Julia.Eval(@"T""ReflectionTestClass"".StaticGenericMethod[T""System.Int64""]()").Value);
         }
 
         [Test]
         public void BoxingTest(){
             Assert.IsTrue((long) Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
-            //Assert.AreEqual(Julia.Eval("sharpunbox(T""TestJuliaInterface.ReflectionTestClass"".TestStaticField)"), 5, "Unboxing Failed")
+            //Assert.AreEqual(Julia.Eval("sharpunbox(T""ReflectionTestClass"".TestStaticField)"), 5, "Unboxing Failed")
         }
 
         [Test]
         public void UsingTest()
         {
-            Julia.Eval("@netusing System");
+            
             Julia.Eval(@"T""Int64""");
         }
 

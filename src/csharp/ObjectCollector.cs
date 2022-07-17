@@ -11,8 +11,7 @@ namespace JuliaInterface
         internal static object JLLock = new object(), CLock = new object();
         internal static JLArray JLcollector;
         internal static HashSet<object> Ccollector = new HashSet<object>();
-
-        internal static void init() => JLcollector = Julia.Eval("const juliaCollector = Set{Any}()");
+        internal static void init() => JLcollector = Julia.Eval("JuliaReferenceCollector = Set{Any}()");
 
         internal static JLGCStub PushJL(JLVal val){
             lock (JLLock){
@@ -34,7 +33,7 @@ namespace JuliaInterface
         public static long CSharpObjLen { get => Ccollector.Count; }
 
         internal static void Free(){
-            JLcollector.RemoveAt(new JLRange(1, JLcollector.Length));
+            JLcollector.Clear();
             Ccollector.Clear();
         }
     }

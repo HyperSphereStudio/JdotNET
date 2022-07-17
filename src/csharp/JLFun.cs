@@ -97,7 +97,7 @@ namespace JuliaInterface
                 GetFieldF, SetField_F, NamesF, ElTypeF, SizeF, FirstF, LastF, 
                 Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF, 
                 MethodArgNamesF, MakeArrayF, IsEqualF, IsNEqualF, IsGreaterF, 
-                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF;
+                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF, KeysF, PWDF, CDF, Empty_F;
 
         private static JLFun GetBFun(string name) => JLModule.Base.GetFunction(name);
 
@@ -128,6 +128,10 @@ namespace JuliaInterface
             IterateF = GetBFun("iterate");
             EachIndexF = GetBFun("eachindex");
             SizeOfF = GetBFun("sizeof");
+            KeysF = GetBFun("keys");
+            CDF = GetBFun("cd");
+            PWDF = GetBFun("pwd");
+            Empty_F = GetBFun("empty!");
 
             IsEqualF = GetBFun("==");
             IsNEqualF = GetBFun("!=");

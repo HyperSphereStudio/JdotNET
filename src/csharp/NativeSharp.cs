@@ -14,6 +14,7 @@ namespace JuliaInterface
     internal class NativeSharp
     {
         private static BindingFlags MethodBindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.SetProperty;
+        private static List<Delegate> pinnedDelegates = new List<Delegate>();
 
         internal delegate JLVal Invokable(object[] args);
         delegate JLVal SharpInvoke(long invokable, JLArray parameters);
@@ -67,11 +68,17 @@ namespace JuliaInterface
             return Type.GetType(name);
         }
 
-        private static JLVal GetPtr<T>(T del) => Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(del));
+        private static JLVal GetPtr(Delegate del){
+            pinnedDelegates.Add(del);
+            return Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(del));
+        }
+
         private static JLVal throwExp(Exception e){
             JuliaCalls.jl_throw(JLType.SharpJLException.Create(CreateJuliaVal(JLType.SharpObject, e)));
             return new JLVal(IntPtr.Zero);
         }
+
+        internal static void destroy() => pinnedDelegates.Clear();
 
         internal unsafe static void init()
         {
@@ -120,7 +127,7 @@ namespace JuliaInterface
             SharpGenericMethod GetGenericMethod = (method, generic_types) => {
                 try
                 {
-                    var m = ((MethodInfo)ReadSharpVal<InvokableObject>(method).Parent).MakeGenericMethod(((long[])generic_types.UnboxInt64Array()).Select(x => ReadSharpVal<Type>(x)).ToArray());
+                    var m = ((MethodInfo)ReadSharpVal<InvokableObject>(method).Parent).MakeGenericMethod(((long[]) generic_types.UnboxInt64Array()).Select(x => ReadSharpVal<Type>(x)).ToArray());
                     return CreateJuliaVal(JLType.SharpMethod, new InvokableObject((args) => {
                         if (m.IsStatic)
                             return CreateJuliaVal(JLType.SharpObject, m.Invoke(null, args));

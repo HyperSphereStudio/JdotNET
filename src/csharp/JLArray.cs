@@ -131,6 +131,8 @@ namespace JuliaInterface
         public void Remove(JLVal val) => new JLVal(this).Remove(val);
         public void RemoveAt(JLVal idx) => new JLVal(this).RemoveAt(idx);
         public void RemoveAt(JLRange range) => new JLVal(this).RemoveAt(range);
+        public void Clear() => new JLVal(this).Clear();
+
         public JLVal this[JLVal idx] {
             get => new JLVal(this)[idx];
             set => new JLVal(this).setEl(idx, value);

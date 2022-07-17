@@ -22,6 +22,9 @@ namespace JuliaInterface
         public static extern void jl_init();
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void jl_parse_opts(ref int argc, byte*** argvp);
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLVal jl_eval_string(string c);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -144,35 +147,6 @@ namespace JuliaInterface
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void jl_exception_clear();
-        
-        
-
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH1(IntPtr p);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH2(IntPtr p, IntPtr p2);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH3(IntPtr p, IntPtr p2, IntPtr p3);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH4(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH5(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH6(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6);
-        
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_PUSH7(IntPtr p, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6, IntPtr p7);
-
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void JL_GC_POP();
-
-        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _JL_GC_PUSHARGS(IntPtr[] p, SizeT count);
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -617,5 +591,33 @@ namespace JuliaInterface
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLArray jl_new_struct_uninit(JLType t);
+
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        public unsafe struct JLGCFrame
+        {
+            public readonly SizeT nroots;
+            public readonly IntPtr prev;
+
+            public static JLGCFrame* createNewFrame(JLGCFrame* lastFrame, params JLVal[] valuesToSave){
+                SizeT** ptr = (SizeT**) Marshal.AllocHGlobal((valuesToSave.Length + 2) * sizeof(SizeT));
+                ptr[0] = (SizeT*) JL_GC_ENCODE_PUSHARGS(valuesToSave.Length).p;
+                ptr[1] = (SizeT*) lastFrame;
+                for (int i = 0; i < valuesToSave.Length; i++)
+                    ptr[i + 2] = (SizeT*) valuesToSave[i].ptr;
+                return (JLGCFrame*) ptr;
+            }
+
+            public JLGCFrame* pop() => (JLGCFrame*) prev;
+
+            public static SizeT JL_GC_ENCODE_PUSHARGS(int n) => new SizeT(n) << 2;
+        }
+
+
+        [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern JLGCFrame* jl_get_pgcstack();
+
+
     }
 }

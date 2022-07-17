@@ -184,6 +184,7 @@ namespace JuliaInterface
         public void Remove(JLVal val) => JLFun.Delete_F.Invoke(this, val);
         public void RemoveAt(JLVal idx) => JLFun.Deleteat_F.Invoke(this, idx);
         public void RemoveAt(JLRange range) => JLFun.Deleteat_F.Invoke(this, range);
+        public void Clear() => JLFun.Empty_F.Invoke(this);
 
         public JLVal this[JLVal idx] {
             get => JLFun.GetIndexF.Invoke(this, idx);
@@ -231,6 +232,5 @@ namespace JuliaInterface
                     return Julia.AllocStruct(JLType.SharpObject, AddressHelper.GetAddress(o).ToInt64());
             }
         }
-
     }
 }

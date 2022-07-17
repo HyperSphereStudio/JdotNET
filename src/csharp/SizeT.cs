@@ -8,8 +8,8 @@ namespace JuliaInterface
     {
         public UIntPtr p;
 
-        public SizeT(long i) => p = new UIntPtr((ulong)i);
-        public SizeT(int i) => p = new UIntPtr((uint)i);
+        public SizeT(long i) => p = new UIntPtr((ulong) i);
+        public SizeT(int i) => p = new UIntPtr((uint) i);
         public SizeT(uint i) => p = new UIntPtr(i);
         public SizeT(ulong i) => p = new UIntPtr(i);
         public SizeT(JLVal v){
