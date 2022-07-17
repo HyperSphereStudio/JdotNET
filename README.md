@@ -15,7 +15,7 @@ Evaluation:
 ```csharp
 Julia.Init();
 int v = (int) Julia.Eval("2 * 2");
-Julia.Exit(0);
+Julia.Exit(0); //Even if your program terminates after you should call this. It runs the finalizers and stuff 
 ```
 
 Struct Handling:
@@ -30,14 +30,12 @@ Struct Handling:
 
 Function Handling:
 ```csharp
-  Julia.Init();
   JLFun fun = Julia.Eval("t(x::Int) = Int32(x * 2)");
   JLSvec ParameterTypes = fun.ParameterTypes;
   JLType willbeInt64 = fun.ParameterTypes[1];
   JLType willBeInt32 = fun.ReturnType;
   
   JLVal resultWillBe4 = fun.Invoke(2);
-  Julia.Exit(0);
 ```
 
 Value Handling:
@@ -54,7 +52,6 @@ Value Handling:
 
 Array Handling:
 ```csharp
-   Julia.Init();
    JLArray arr = Julia.Eval("[2, 3, 4]")
    
    //Unpack to .net
@@ -66,13 +63,10 @@ Array Handling:
        newArray[i - 1] = (long) arr[i];
    
    JLType elementType = arr.ElType;
-   
-   Julia.Exit(0); 
 ```
 
 Exception Handling:
 ```csharp
-  Julia.Init();
   JLFun fun = Julia.Eval("t(x) = sqrt(x)");
   fun.Invoke(5).Println();   //Exception Checking
   fun.UnsafeInvoke(5).Println();   //No Exception Checking
@@ -83,9 +77,13 @@ Exception Handling:
 Garbage Collection:
 You are (at the current moment of this project) responsible for ensuring object safety on both .NET and Julia. When you make calls to either language, the GC could activate and invalidate the reference you hold in the other language unless you pin it!
 
-CSharp Garbage Collector Pinning:
+There are two forms of Garbage Collector Pinning: Static & Stack.
+
+Static pinning is meant for objects with a long life span (could exist forever).
+Stack pinning is meant for objects with a short life span.
+
+CSharp Static Garbage Collector Pinning:
 ```csharp
-  Julia.Init();
   JLArray myArr = new JLArray(JLType.Int64, 5);  //Allocate Int64 array of length 5
   
   var handle = myArr.Pin();    //Pin the Object 
@@ -93,11 +91,18 @@ CSharp Garbage Collector Pinning:
   //Stuff calling Julia Functions
   
   handle.Free();   //Optional, handle destructor will auto call it. This is in case you want it freed earlier
-  
-  Julia.Exit(0);
 ```
-Keep In mind that there is another way to pin Julia objects using Julia.PUSHGC() and Julia.POPGC(). (The Julian way)
 
+CSharp Stack Garbage Collector Pinning:
+```csharp
+    JLVal v = Julia.Eval("2 * 2");
+    JLVal v2 = Julia.Eval("Hi");
+    Julia.GC_PUSH(v, v2);
+
+    //Do Stuff with v without it being collected
+
+    Julia.GC_POP();    
+```
 
 Julia Garbage Collector Pinning:
 ```julia
