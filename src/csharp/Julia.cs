@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 
 //Written by Johnathan Bizzano 
 namespace JuliaInterface
@@ -14,13 +10,22 @@ namespace JuliaInterface
     {
         public string JuliaDirectory;
         public List<string> Arguments = new List<string>();
+        
         public int ThreadCount = 1;
-        public string EvalStr;
+        public int WorkerCount = 1;
+        public int Optimize = 2;
+        public string LoadSystemImage;
+        public string EvaluationString;
+        public bool UseSystemImageNativeCode = true;
+        public bool HandleSignals = true;
+        public bool PrecompileModules = true;
 
         public void Add(params object[] args) {
             foreach (var arg in args)
                 Arguments.Add(arg.ToString());
         }
+
+        private string AsJLString(bool b) => b ? "yes" : "no";
 
         internal void BuildArguments()
         {
@@ -29,8 +34,26 @@ namespace JuliaInterface
             if (ThreadCount != 1)
                 Add("-t", ThreadCount);
 
-            if (EvalStr != null)
-                Add("-e", EvalStr);
+            if (WorkerCount != 1)
+                Add("-p", WorkerCount);
+
+            if (Optimize != 2)
+                Add("-O", Optimize);
+
+            if (EvaluationString != null)
+                Add("-e", EvaluationString);
+
+            if (LoadSystemImage != null)
+                Add("-J", LoadSystemImage);
+
+            if (!UseSystemImageNativeCode)
+                Add("--sysimage-native-code=", AsJLString(UseSystemImageNativeCode));
+
+            if (!PrecompileModules)
+                Add("--compiled-modules=", AsJLString(PrecompileModules));
+
+            if(!HandleSignals)
+                Add("--handle-signals =", AsJLString(PrecompileModules));
 
             JuliaDirectory = JuliaDirectory == null ? Julia.JuliaDir : JuliaDirectory;
 
@@ -52,23 +75,7 @@ namespace JuliaInterface
                 if (_JuliaDir != null)
                     return _JuliaDir;
 
-                var proc = new Process {
-                    StartInfo = new ProcessStartInfo {
-                        FileName = "julia",
-                        Arguments = "-e \"println(\"\"JULIAPPPATH$(Sys.BINDIR)JULIAPPPATH\"\")\"",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true
-                    }
-                };
-                proc.Start();
-                var location = proc.StandardOutput.ReadToEnd();
-                Regex rg = new Regex("JULIAPPPATH(.+)JULIAPPPATH");
-                var match = rg.Match(location);
-
-                if (match.Success)
-                    _JuliaDir = match.Groups[1].Value;
-
+                _JuliaDir = JLUtils.GetJuliaDir();
                 return _JuliaDir;
             }
             set { _JuliaDir = value; }
@@ -141,10 +148,16 @@ namespace JuliaInterface
             }
 
             JuliaCalls.jl_init();
-            JuliaCalls.jl_eval_string(Encoding.UTF8.GetString(Resource1.JuliaInterface));
+            
             JLModule.init_mods();
             JLType.init_types();
             JLFun.init_funs();
+        
+            Eval(Encoding.UTF8.GetString(Resource1.JuliaInterface), "JuliaInterface.jl");
+            
+            JLModule.finish_init_mods();
+            JLType.finish_init_types();
+            JLFun.finish_init_funs();
         }
 
         public static bool Isa(JLVal v, JLType t) => JuliaCalls.jl_isa(v, t) != 0;
@@ -179,9 +192,8 @@ namespace JuliaInterface
             JuliaDll.Close();
         }
 
-        public static JLVal Eval(string str)
-        {
-            var val = JuliaCalls.jl_eval_string(str);
+        public static JLVal Eval(string str, string filename = null){
+            JLVal val = filename == null ? JuliaCalls.jl_eval_string(str) : JLFun.LinedEval.Invoke(str, filename, JLModule.Main);
             CheckExceptions();
             return val;
         }
@@ -212,5 +224,6 @@ namespace JuliaInterface
             CheckExceptions();
             return Marshal.PtrToStringAnsi(p);
         }
+        
     }
 }

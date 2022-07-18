@@ -32,15 +32,22 @@ namespace JuliaInterface
         public void Print() => new JLVal(this).Print();
         public JLVal GetGlobal(JLSym name) => Julia.GetGlobal(this, name);
         public JLFun GetFunction(string name) => Julia.GetFunction(this, name);
+        public JLVal Eval(string expr, string filename = null) => filename == null ? core_eval.Invoke(expr) : JLFun.LinedEval.Invoke(expr, filename, this);
 
 
-        public static JLModule Base, Core, Main, JuliaInterface;
+        public static JLModule Base, Core, Main, JuliaInterface, Meta;
+
+        private static JLFun core_eval;
 
         internal static void init_mods(){
             Base = Julia.Eval("Base").ptr;
             Core = Julia.Eval("Core").ptr;
             Main = Julia.Eval("Main").ptr;
-            JuliaInterface = Julia.Eval("Main.JuliaInterface").ptr;
+            Meta = Julia.Eval("Meta").ptr;
+
+            core_eval = Core.GetFunction("eval").ptr;
         }
+
+        internal static void finish_init_mods() => JuliaInterface = Julia.Eval("Main.JuliaInterface").ptr;
     }
 }

@@ -393,14 +393,6 @@ namespace JuliaInterface
         
 		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
 		public static extern JLVal jl_restore_incremental_from_buf(string buf, SizeT sz, JLArray depmods);
-
-        
-		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-		public static extern JLVal jl_parse_all(string text, SizeT text_len, string filename, SizeT filename_len);
-        
-		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-		public static extern JLVal jl_parse_string(string text, SizeT text_len, int offset, int greedy);
-    
         
 		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
 		public static extern JLVal jl_expand(JLVal expr, JLModule  inmodule);
@@ -592,6 +584,7 @@ namespace JuliaInterface
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLArray jl_new_struct_uninit(JLType t);
 
+        
 
 
         [StructLayout(LayoutKind.Sequential)]
@@ -618,6 +611,6 @@ namespace JuliaInterface
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static unsafe extern JLGCFrame* jl_get_pgcstack();
 
-
+       
     }
 }

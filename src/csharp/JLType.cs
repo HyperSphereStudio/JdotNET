@@ -74,6 +74,13 @@ namespace JuliaInterface
             JLNothing = GetType(Core, "Nothing");
             JLArray = GetType(Core, "Array");
 
+            
+
+            JLUnitRange = GetType(Core, "UnitRange");
+            JLStepRange = GetType(Core, "StepRange");
+        }
+
+        internal static void finish_init_types(){
             SharpMethod = GetType(JLModule.JuliaInterface, "SharpMethod");
             SharpObject = GetType(JLModule.JuliaInterface, "SharpObject");
             SharpConstructor = GetType(JLModule.JuliaInterface, "SharpConstructor");
@@ -81,9 +88,6 @@ namespace JuliaInterface
             SharpType = GetType(JLModule.JuliaInterface, "SharpType");
             SharpStub = GetType(JLModule.JuliaInterface, "SharpStub");
             SharpJLException = GetType(JLModule.JuliaInterface, "SharpException");
-
-            JLUnitRange = GetType(Core, "UnitRange");
-            JLStepRange = GetType(Core, "StepRange");
         }
     }
 }

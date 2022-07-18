@@ -1,6 +1,4 @@
-"Written by Johnathan Bizzano"
 module JuliaInterface
-
 	export method_argnames, SharpField, SharpType, SharpConstructor, SharpObject, SharpMethod, free, pin, @T_str, @P_str, @G_str, @R_str, sharptype, sharpbox, sharpunbox, @netusing, makearray
 
 	_SharpGetMethod = nothing
@@ -18,15 +16,22 @@ module JuliaInterface
 	_SharpEquals = nothing
 	_SharpBox = nothing
 	_SharpUnBox = nothing
-	
+
 	function method_argnames(m::Method)
-           argnames = ccall(:jl_uncompress_argnames, Vector{Symbol}, (Any,), m.slot_syms)
-           isempty(argnames) && return argnames
-           return [string(sym) for sym in argnames[1:m.nargs][2:end]]
-    end
+       argnames = ccall(:jl_uncompress_argnames, Vector{Symbol}, (Any,), m.slot_syms)
+       isempty(argnames) && return argnames
+       return [string(sym) for sym in argnames[1:m.nargs][2:end]]
+	end
+
+	abstract type AbstractSharpType end
+
+	Base.print(io::IO, ast::AbstractSharpType) = print(io, string(ast))
+	Base.show(io::IO, ast::AbstractSharpType) = show(io, string(ast))
+	Base.hash(ast::AbstractSharpType) = _SharpGetHashCode(ast.ptr)
+	Base.string(ast::AbstractSharpType) = _SharpToString(ast.ptr)
 
 	"Container for a sharp field"
-	struct SharpField
+	struct SharpField <: AbstractSharpType
 		ptr::Int
 		
 		SharpField(ptr::Int) = new(ptr)
@@ -39,15 +44,10 @@ module JuliaInterface
 		(sf::SharpField)() = _SharpInvoke(sf.ptr, Any[])
 		(sf::SharpField)(obj) = _SharpInvoke(sf.ptr, Any[obj])
 		(sf::SharpField)(obj, newVal) = _SharpInvoke(sf.ptr, Any[obj, newVal])
-		
-		Base.hash(so::SharpField) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpField) = _SharpToString(so.ptr)
-		Base.print(io::IO, so::SharpField) = print(io, string(so))
-		Base.show(io::IO, so::SharpField) = show(io, string(so))
 	end
-
+		
 	"Container for a sharp type"
-	struct SharpType
+	struct SharpType <: AbstractSharpType
 		ptr::Int
 	
 		SharpType(name::String) = _SharpClass(name)
@@ -59,55 +59,40 @@ module JuliaInterface
 			elseif sym == :ptr
 				return Base.getfield(st, :ptr)
 			else 
-			    sm = _SharpGetMethod(st.ptr, string(sym))
+				sm = _SharpGetMethod(st.ptr, string(sym))
 				(sm.ptr != 0) && return sm
 				return _SharpField(st.ptr, string(sym))
 			end
 		end
-		
-		Base.hash(so::SharpType) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpType) = _SharpToString(so.ptr)
-		Base.print(io::IO, so::SharpType) = print(io, string(so))
-		Base.show(io::IO, so::SharpType) = show(io, string(so))
 	end
-	
+
 	"Container for a sharp constructor. Use [T,...] to pass generics. Can be invoked after passing generics (if needed)"
-	struct SharpConstructor
+	struct SharpConstructor <: AbstractSharpType
 		ptr::Int
 		
 		SharpConstructor(ptr::Int) = new(ptr)
 		
-		Base.getindex(so::SharpConstructor) = so
-		Base.getindex(so::SharpConstructor, generic_types::SharpType...) = _SharpGetGenericConstructor(so.ptr, Any[gen_type.ptr for gen_type in generic_types])
+		Base.getindex(sc::SharpConstructor) = sc
+		Base.getindex(sc::SharpConstructor, generic_types::SharpType...) = _SharpGetGenericConstructor(sc.ptr, Any[gen_type.ptr for gen_type in generic_types])
 		(sc::SharpConstructor)(parameters...) = _SharpInvoke(sc.ptr, Any[parameters...])
-		
-		Base.hash(so::SharpConstructor) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpConstructor) = _SharpToString(so.ptr)
-		Base.print(io::IO, so::SharpConstructor) = print(io, string(so))
-		Base.show(io::IO, so::SharpConstructor) = show(io, string(so))
 	end
 
-	"Container for a sharp method. Use [T,...] to pass generics. Can be invoked after passing generics (if needed)"
-	struct SharpMethod
+		"Container for a sharp method. Use [T,...] to pass generics. Can be invoked after passing generics (if needed)"
+	struct SharpMethod <: AbstractSharpType
 		ptr::Int
 		
 		SharpMethod(ptr::Int) = new(ptr)
 		
-		Base.getindex(so::SharpMethod) = so
-		Base.getindex(so::SharpMethod, generic_types::SharpType...) = _SharpGetGenericMethod(so.ptr, Any[gen_type.ptr for gen_type in generic_types])
-		(sc::SharpMethod)(parameters...) = _SharpInvoke(sc.ptr, Any[parameters...])
-		
-		Base.hash(so::SharpMethod) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpMethod) = _SharpToString(so.ptr)
-		Base.print(io::IO, so::SharpMethod) = print(io, string(so))
-		Base.show(io::IO, so::SharpMethod) = show(io, string(so))
+		Base.getindex(sm::SharpMethod) = sm
+		Base.getindex(sm::SharpMethod, generic_types::SharpType...) = _SharpGetGenericMethod(sm.ptr, Any[gen_type.ptr for gen_type in generic_types])
+		(sm::SharpMethod)(parameters...) = _SharpInvoke(sm.ptr, Any[parameters...])
 	end
-	
+
 	"Get the Sharp Type"
 	sharptype(so) = SharpType(_SharpGetType(so.ptr))
 
 	"Container for sharp object"
-	mutable struct SharpObject
+	mutable struct SharpObject <: AbstractSharpType
 		ptr::Int
 		
 		SharpObject(ptr::Int) = new(ptr)
@@ -117,64 +102,48 @@ module JuliaInterface
 				return Base.getfield(st, :ptr)
 			else 
 			    sm = SharpOwnerMethod(_SharpGetMethod(sharptype(st).ptr, string(sym)), st)
-				(sm.method.ptr != 0) && return sm
+				(sm.ptr.ptr != 0) && return sm
 				return SharpOwnerField(_SharpField(sharptype(st).ptr, string(sym)), st)
 			end
 		end
-		
-		Base.hash(so::SharpObject) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpObject) = _SharpToString(so.ptr)
-		Base.print(io::IO, so::SharpObject) = print(io, string(so))
-		Base.show(io::IO, so::SharpObject) = show(io, string(so))
 	end
-	
-		
+
 	"Container for a sharp owner field"
-	struct SharpOwnerField
-		field::SharpField
+	struct SharpOwnerField <: AbstractSharpType
+		ptr::SharpField
 		owner::SharpObject
 		
 		SharpOwnerField(field::SharpField, owner::SharpObject) = new(field, owner)
 		
-		Base.getindex(sf::SharpOwnerField) = sf()
-		Base.setindex!(sf::SharpOwnerField, val) = sf(val)
+		Base.getindex(sof::SharpOwnerField) = sof()
+		Base.setindex!(sof::SharpOwnerField, val) = sof(val)
 		
-		(sf::SharpOwnerField)() = sf.field(sf.owner)
-		(sf::SharpOwnerField)(obj) = sf.field(sf.owner, val)
-		
-		Base.hash(so::SharpOwnerField) = hash(so.field)
-		Base.string(so::SharpOwnerField) = string(so.field)
-		Base.print(io::IO, so::SharpOwnerField) = print(io, so.field)
-		Base.show(io::IO, so::SharpOwnerField) = show(io, so.field)
+		(sof::SharpOwnerField)() = sof.ptr(sof.owner)
+		(sof::SharpOwnerField)(obj) = sof.ptr(sof.owner, val)
 	end
 	
 	"Container for a sharp method. Use [T,...] to pass generics. Can be invoked after passing generics (if needed)"
-	struct SharpOwnerMethod
-		method::SharpMethod
+	struct SharpOwnerMethod <: AbstractSharpType
+		ptr::SharpMethod
 		owner::SharpObject
 		
-		SharpOwnerMethod(sm::SharpMethod, owner::SharpObject) = new(sm)
+		SharpOwnerMethod(som::SharpMethod, owner::SharpObject) = new(som, owner)
 		
-		Base.getindex(so::SharpOwnerMethod) = so
-		Base.getindex(so::SharpOwnerMethod, generic_types::SharpType...) = SharpOwnerMethod(so(generic_types...), so.owner) 
-		(sc::SharpOwnerMethod)(parameters...) = so.method(sc.owner, parameters...)
-		
-		Base.hash(so::SharpOwnerMethod) = hash(so.method)
-		Base.string(so::SharpOwnerMethod) = string(so.method)
-		Base.print(io::IO, so::SharpOwnerMethod) = print(io, so.method)
-		Base.show(io::IO, so::SharpOwnerMethod) = show(io, so.method)
+		Base.getindex(som::SharpOwnerMethod) = som
+		Base.getindex(som::SharpOwnerMethod, generic_types::SharpType...) = SharpOwnerMethod(som(generic_types...), som.owner) 
+		(som::SharpOwnerMethod)(parameters...) = som.ptr(som.owner, parameters...)
 	end
 	
 	"Container for sharp exceptions."
 	struct SharpException <: Exception
 		exp::SharpObject
-		SharpException(obj::SharpObject) = new(obj)
+		SharpException(so::SharpObject) = new(so)
 		
 		Base.showerror(io::IO, se::SharpException) = print(io, se.exp)
-		Base.hash(so::SharpException) = hash(so.exp)
-		Base.string(so::SharpException) = string(so.exp)
-		Base.print(io::IO, so::SharpException) = print(io, se.exp)
-		Base.show(io::IO, so::SharpException) = show(io, so.exp)
+		Base.hash(se::SharpException) = hash(se.exp)
+		Base.string(se::SharpException) = string(se.exp)
+		Base.print(io::IO, se::SharpException) = print(io, se.exp)
+		Base.show(io::IO, se::SharpException) = show(io, se.exp)
 	end
 	
 	"Box the Julia type to sharp type"
@@ -185,7 +154,7 @@ module JuliaInterface
 	
 	"Unbox the sharp container to julia type"
 	sharpunbox(v::Any) = sharpunbox(v.ptr)
-	
+
 	"Free the Sharp GC Pin"
 	function free(s)
 			if !s.wasFreed
@@ -198,7 +167,7 @@ module JuliaInterface
 	pin(s) = _SharpPin(s.ptr)
 	
 	"Stub for the Sharp GC"
-	mutable struct SharpStub
+	mutable struct SharpStub <: AbstractSharpType
 		ptr::Int
 		wasFreed::Bool
 		
@@ -209,8 +178,6 @@ module JuliaInterface
 		end
 		
 		Base.close(st::SharpStub) = free(st)
-		Base.hash(so::SharpStub) = _SharpGetHashCode(so.ptr)
-		Base.string(so::SharpStub) = _SharpToString(so.ptr)
 	end
 	
 	function typefind(mod, type) 
@@ -240,8 +207,8 @@ module JuliaInterface
 		namespace in storage || (push!(storage, namespace))
 		return nothing
 	end
-	
-    TypeMap = Dict{String, SharpType}()
+
+    const TypeMap = Dict{String, SharpType}()
 
 	"Perform a static lookup of the Sharp Type. If using the same type multiple times, use P,G & R version to store then remove from local storage"
 	macro T_str(type)

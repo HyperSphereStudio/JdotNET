@@ -97,7 +97,7 @@ namespace JuliaInterface
                 GetFieldF, SetField_F, NamesF, ElTypeF, SizeF, FirstF, LastF, 
                 Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF, 
                 MethodArgNamesF, MakeArrayF, IsEqualF, IsNEqualF, IsGreaterF, 
-                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF, KeysF, PWDF, CDF, Empty_F;
+                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF, KeysF, PWDF, CDF, Empty_F, LinedEval;
 
         private static JLFun GetBFun(string name) => JLModule.Base.GetFunction(name);
 
@@ -140,6 +140,10 @@ namespace JuliaInterface
             IsGreaterOrEqualF = GetBFun(">=");
             IsLessOrEqualF = GetBFun("<=");
 
+            LinedEval = Julia.Eval("LinedEvaluation(s::String, file::String, m::Module) = Core.eval(m, Meta.parseall(s, filename=file))");
+        }
+
+        internal static void finish_init_funs() {
             MethodArgNamesF = JLModule.JuliaInterface.GetFunction("method_argnames");
             MakeArrayF = JLModule.JuliaInterface.GetFunction("makearray");
         }
