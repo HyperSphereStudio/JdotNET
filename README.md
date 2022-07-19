@@ -1,12 +1,21 @@
 Julia.NET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
 
-Command Line Arguments
+Launching Julia from C#
 ```csharp
 JuliaOptions options = new JuliaOptions();
 options.ThreadCount = 4;
 Julia.Init(options);
 ```
 
+Launching C# from Julia
+```julia
+using JULIAdotNET
+using JULIAdotNET.JuliaInterface
+
+handle = Init() #Keep handle alive as long as you want .NET to be alive
+
+sharpList = T"System.Collections.Generic.List`1".new[T"System.Int64"]()
+```
 
 
 Evaluation:
