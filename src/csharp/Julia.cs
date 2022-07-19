@@ -55,7 +55,9 @@ namespace JuliaInterface
             if(!HandleSignals)
                 Add("--handle-signals =", AsJLString(PrecompileModules));
 
-            JuliaDirectory = JuliaDirectory == null ? Julia.JuliaDir : JuliaDirectory;
+            if (JuliaDirectory != null)
+                Julia.JuliaDir = JuliaDirectory;
+            else JuliaDirectory = Julia.JuliaDir;
 
             if (JuliaDirectory == null)
                 throw new Exception("Julia Path Not Found");
@@ -69,6 +71,7 @@ namespace JuliaInterface
         private static volatile bool _PreviosulyLoaded = false;
         private static object _gclock = new object();
         private static unsafe JuliaCalls.JLGCFrame* lastFrame;
+        internal static string juliaInterfaceModuleName = "Main.JuliaInterface";
 
         public static string JuliaDir {
             get {
@@ -81,7 +84,6 @@ namespace JuliaInterface
             set { _JuliaDir = value; }
         }
 
-
         public static bool IsInitialized { get => _IsInitialized; }
         public static string LibDirectory { get => MString(JuliaCalls.jl_get_libdir()); }
         public static bool IsInstalled { get => JuliaDir != null; }
@@ -92,10 +94,11 @@ namespace JuliaInterface
             set => JLFun.CDF.Invoke(value.Replace("\\", "\\\\"));
         }
 
-
         public static void Init() => Init(new JuliaOptions());
-        
-        public static void Init(JuliaOptions options)
+
+        public static void Init(JuliaOptions options) => Init(options, true);
+
+        internal static void Init(JuliaOptions options, bool sharpInit)
         {
             if (_IsInitialized) return;
             _IsInitialized = true;
@@ -107,54 +110,60 @@ namespace JuliaInterface
             var env = Environment.CurrentDirectory;
             Environment.CurrentDirectory = options.JuliaDirectory;
             JuliaDll.Open();
-            jl_init_code(options);
+            jl_init_code(options, sharpInit);
             NativeSharp.init();
             ObjectCollector.init();
             Environment.CurrentDirectory = env;
-            Eval("using Main.JuliaInterface");
+
+            if(sharpInit)
+                Eval("using Main.JuliaInterface");
 
             unsafe
             {
                 lastFrame = JuliaCalls.jl_get_pgcstack();
             }
-            
             _PreviosulyLoaded = true;
         }
 
 
-        private static void jl_init_code(JuliaOptions options)
+        private static void jl_init_code(JuliaOptions options, bool sharpInit)
         {
-            var arguments = options.Arguments.ToArray();
-            if (arguments != null && arguments.Length != 0)
+            if (sharpInit)
             {
-                int len = arguments.Length;
-                unsafe
+                var arguments = options.Arguments.ToArray();
+                if (arguments != null && arguments.Length != 0)
                 {
-                    byte*[] stringBytes = new byte*[arguments.Length];
-                    GCHandle[] handles = new GCHandle[arguments.Length];
-
-                    for (int i = 0; i < arguments.Length; ++i)
+                    int len = arguments.Length;
+                    unsafe
                     {
-                        handles[i] = GCHandle.Alloc(Encoding.ASCII.GetBytes(arguments[i]), GCHandleType.Pinned);
-                        stringBytes[i] = (byte*)handles[i].AddrOfPinnedObject();
+                        byte*[] stringBytes = new byte*[arguments.Length];
+                        GCHandle[] handles = new GCHandle[arguments.Length];
+
+                        for (int i = 0; i < arguments.Length; ++i)
+                        {
+                            handles[i] = GCHandle.Alloc(Encoding.ASCII.GetBytes(arguments[i]), GCHandleType.Pinned);
+                            stringBytes[i] = (byte*)handles[i].AddrOfPinnedObject();
+                        }
+
+                        fixed (byte** ANSIPTR = stringBytes)
+                            JuliaCalls.jl_parse_opts(ref len, &ANSIPTR);
+
+                        foreach (var handle in handles)
+                            handle.Free();
                     }
-
-                    fixed (byte** ANSIPTR = stringBytes)
-                        JuliaCalls.jl_parse_opts(ref len, &ANSIPTR);
-
-                    foreach (var handle in handles)
-                        handle.Free();
                 }
+                JuliaCalls.jl_init();
             }
+            else
+                juliaInterfaceModuleName = "JULIAdotNET.JuliaInterface";
 
-            JuliaCalls.jl_init();
-            
             JLModule.init_mods();
             JLType.init_types();
             JLFun.init_funs();
         
-            Eval(Encoding.UTF8.GetString(Resource1.JuliaInterface), "JuliaInterface.jl");
-            
+            if(sharpInit)
+                Eval(Encoding.UTF8.GetString(Resource1.JuliaInterface), "JuliaInterface.jl");
+
             JLModule.finish_init_mods();
             JLType.finish_init_types();
             JLFun.finish_init_funs();
@@ -225,5 +234,16 @@ namespace JuliaInterface
             return Marshal.PtrToStringAnsi(p);
         }
         
+    }
+
+    public class CSharp
+    {
+        [UnmanagedCallersOnly]
+        public static int Init(IntPtr julia_bindir){
+            var jo = new JuliaOptions();
+            jo.JuliaDirectory = Marshal.PtrToStringUni(julia_bindir);
+            Julia.Init(jo, false);
+            return 0;
+        }
     }
 }

@@ -235,7 +235,7 @@ module JuliaInterface
 
 	function gen_ccall(addr, ret, argtypes...)
 		argSyms = [Symbol("arg$i") for i in 1:length(argtypes)]
-		return Core.eval(Main.JuliaInterface, Expr(:(->), Expr(:tuple, argSyms...), Expr(:call, :ccall, addr, ret, Expr(:tuple, argtypes...), argSyms...)))
+		return Core.eval(@__MODULE__, Expr(:(->), Expr(:tuple, argSyms...), Expr(:call, :ccall, addr, ret, Expr(:tuple, argtypes...), argSyms...)))
 	end
 
 	makearray(T, dims) = Array{T}(undef, dims...)

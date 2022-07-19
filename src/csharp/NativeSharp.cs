@@ -284,7 +284,6 @@ namespace JuliaInterface
                     return throwExp(e);
                 }
             };
-
          
             Julia.GetFunction(JLModule.JuliaInterface, "initialize_library")
                    .Invoke(GetPtr(GetClass),

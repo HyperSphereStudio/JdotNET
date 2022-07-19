@@ -48,6 +48,6 @@ namespace JuliaInterface
             core_eval = Core.GetFunction("eval").ptr;
         }
 
-        internal static void finish_init_mods() => JuliaInterface = Julia.Eval("Main.JuliaInterface").ptr;
+        internal static void finish_init_mods() => JuliaInterface = Julia.Eval(Julia.juliaInterfaceModuleName).ptr;
     }
 }

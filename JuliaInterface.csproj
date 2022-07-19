@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -9,6 +9,8 @@
     <AssemblyVersion>1.5.0</AssemblyVersion>
     <FileVersion>1.5.0</FileVersion>
     <PackageLicenseFile>C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIA.Net\LICENSE</PackageLicenseFile>
+	<EnableDynamicLoading>true</EnableDynamicLoading>
+	<PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
