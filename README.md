@@ -127,7 +127,7 @@ Julia Garbage Collector Pinning:
 
 .NET Interface
 
-The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code).
+The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code). Drew ideas of syntax from https://github.com/azurefx/DotNET.jl
 
 Lets say we have the following C# classes:
 ```csharp
