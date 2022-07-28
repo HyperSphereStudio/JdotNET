@@ -25,7 +25,7 @@ int v = (int) Julia.Eval("2 * 2");
 Julia.Exit(0); //Even if your program terminates after you should call this. It runs the finalizers and stuff 
 ```
 
-Struct Handling:
+Structs:
 ```csharp
 
    #You have two choices, allocate a struct or create a struct.
@@ -35,7 +35,7 @@ Struct Handling:
    var myCreatedStuct = JLType.JLRef.Create(3);   //Will call constructor
 ```
 
-Function Handling:
+Functions:
 ```csharp
   JLFun fun = Julia.Eval("t(x::Int) = Int32(x * 2)");
   JLSvec ParameterTypes = fun.ParameterTypes;
@@ -45,7 +45,7 @@ Function Handling:
   JLVal resultWillBe4 = fun.Invoke(2);
 ```
 
-Value Handling:
+Values:
 ```csharp
    //Auto alloc to Julia
    var val = new JLVal(3);
@@ -57,17 +57,23 @@ Value Handling:
    object newVal2 = val.Value;
 ```
 
-Array Handling:
+Arrays:
 ```csharp
    JLArray arr = Julia.Eval("[2, 3, 4]")
    
    //Unpack to .net
-   object[] o = arr.LinearNetUnPack();
+   object[] o = arr.UnboxArray();
    
-   //Make own array
-   var newArray = long[arr.Length];
-   for(int i = 1; i <= arr.Length; ++i)
-       newArray[i - 1] = (long) arr[i];
+   var a = new int[]{2, 3, 4};
+   
+   //Copy to a Julia Array. Dont use this method if you know an object is an array though. There are faster methods!
+   var v = new JLVal(a);
+   
+   //Fast Array Copy From .NET. This will deal with direct memory transfer rather then boxing/unboxing for unmanaged types
+   var v2 = JLArray.CreateArray(a);
+   
+   //Fast Array Copy From Julia. This will deal with direct memory transfer rather then boxing/unboxing for unmanaged types
+   int[] v2 = v2.UnboxArray<int>();
    
    JLType elementType = arr.ElType;
 ```
