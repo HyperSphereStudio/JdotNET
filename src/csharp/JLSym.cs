@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 //Written by Johnathan Bizzano 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct JLSym

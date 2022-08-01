@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 //Written by Johnathan Bizzano 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
 
     [StructLayout(LayoutKind.Sequential)]
@@ -19,7 +19,7 @@ namespace JuliaInterface
         //Start at index 2
         public JLSvec ParameterTypes { get { return GetFieldF.Invoke(GetFieldF.Invoke(((JLArray) JLModule.Base.GetFunction("methods").Invoke(this))[1], (JLSym) "sig"), (JLSym) "parameters"); } }
 
-        public JLArray ParameterNames { get { return JLFun.MethodArgNamesF.Invoke(this); } }
+        public JLArray ParameterNames { get { return _MethodArgNamesF.Invoke(this); } }
         public JLFun(IntPtr ptr) => this.ptr = ptr;
 
         public static implicit operator IntPtr(JLFun value) => value.ptr;
@@ -77,27 +77,27 @@ namespace JuliaInterface
         public JLVal UnsafeInvoke(JLVal arg1) => JuliaCalls.jl_call1(this, arg1);
         public JLVal UnsafeInvoke(JLVal arg1, JLVal arg2) => JuliaCalls.jl_call2(this, arg1, arg2);
         public JLVal UnsafeInvoke(JLVal arg1, JLVal arg2, JLVal arg3) => JuliaCalls.jl_call3(this, arg1, arg2, arg3);
-        public unsafe JLVal UnsafeInvoke(params JLVal[] args) => JuliaCalls.jl_call(this, args, args.Length);
-
-        public unsafe JLVal UnsafeInvokeSplat(params JLVal[] args){
-            var newArr = new JLVal[args.Length + args[args.Length - 1].Length - 1];
-            Array.Copy(args, 0, newArr, 0, args.Length - 1);
-            var splatObj = args[args.Length - 1];
-
-            for (int d = args.Length - 1, s = 1, len = splatObj.Length; s <= len; ++s, ++d){
-                newArr[d] = splatObj[s];
+        public JLVal UnsafeInvoke(params JLVal[] args){
+            unsafe{
+                fixed (JLVal* a = args)
+                    return JuliaCalls.jl_call(this, a, args.Length);
             }
-
-            return JuliaCalls.jl_call(this, newArr, newArr.Length);
         }
-        
+
+        public JLVal UnsafeInvokeSplat(params JLVal[] args) => UnsafeInvokeSplat(args, args.Length);
+        public unsafe JLVal UnsafeInvokeSplat(JLVal* v, int length) => JuliaCalls.jl_call(this, v, length);
+
+
         public static JLFun StringF, TypeOfF, PrintF, PrintlnF, 
                 GetIndexF, SetIndex_F, Push_F, Deleteat_F, 
                 CopyF, PointerF, LengthF, HashCodeF, SprintF, ShowErrorF,
                 GetFieldF, SetField_F, NamesF, ElTypeF, SizeF, FirstF, LastF, 
                 Delete_F, BroadCastF, IterateF, EachIndexF, SizeOfF, 
-                MethodArgNamesF, MakeArrayF, IsEqualF, IsNEqualF, IsGreaterF, 
-                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF, KeysF, PWDF, CDF, Empty_F, LinedEval;
+                IsEqualF, IsNEqualF, IsGreaterF, 
+                IsLessF, IsGreaterOrEqualF, IsLessOrEqualF, KeysF, PWDF, CDF, Empty_F, ConvertF,
+                WriteF;
+
+        internal static JLFun _MakeArrayF, _MakeTupleF, _UnboxsharpobjectF, _MethodArgNamesF, _LinedEval;
 
         private static JLFun GetBFun(string name) => JLModule.Base.GetFunction(name);
 
@@ -132,6 +132,8 @@ namespace JuliaInterface
             CDF = GetBFun("cd");
             PWDF = GetBFun("pwd");
             Empty_F = GetBFun("empty!");
+            ConvertF = GetBFun("convert");
+            WriteF = GetBFun("write");
 
             IsEqualF = GetBFun("==");
             IsNEqualF = GetBFun("!=");
@@ -140,12 +142,11 @@ namespace JuliaInterface
             IsGreaterOrEqualF = GetBFun(">=");
             IsLessOrEqualF = GetBFun("<=");
 
-            LinedEval = Julia.Eval("LinedEvaluation(s::String, file::String, m::Module) = Core.eval(m, Meta.parseall(s, filename=file))");
-        }
-
-        internal static void finish_init_funs() {
-            MethodArgNamesF = JLModule.JuliaInterface.GetFunction("method_argnames");
-            MakeArrayF = JLModule.JuliaInterface.GetFunction("makearray");
+            _MethodArgNamesF = JLModule.Sharp.GetFunction("_method_argnames");
+            _MakeArrayF = JLModule.Sharp.GetFunction("_makearray");
+            _MakeTupleF = JLModule.Sharp.GetFunction("_maketuple");
+            _UnboxsharpobjectF = JLModule.Sharp.GetFunction("_unboxsharpobject");
+            _LinedEval = JLModule.Sharp.GetFunction("_linedEvaluation");
         }
     }
 }

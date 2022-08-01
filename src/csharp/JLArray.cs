@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using static JULIAdotNET.ObjectManager;
 
 //Written by Johnathan Bizzano
 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
 
     public class ArrayEnumerator : IEnumerator
@@ -103,25 +105,34 @@ namespace JuliaInterface
     [StructLayout(LayoutKind.Sequential)]
     public struct JLArray
     {
+        private static MethodInfo unmangedcopyfrom = typeof(JLArray).GetMethod("UnsafeCopyFrom`1");
+
         internal IntPtr ptr;
 
         public JLArray(JLType type, long length) : this(JuliaCalls.jl_alloc_array_1d(JuliaCalls.jl_apply_array_type(type, 1), length)) { }
         public JLArray(JLType type, long row, long col) : this(JuliaCalls.jl_alloc_array_2d(JuliaCalls.jl_apply_array_type(type, 2), row, col)) { }
         public JLArray(JLType type, long row, long col, long depth) : this(JuliaCalls.jl_alloc_array_3d(JuliaCalls.jl_apply_array_type(type, 3), row, col, depth)) { }
-        public JLArray(Array a) : this(BoxArray<object>(a, JLType.JLAny, v => new JLVal(v))) { }
+        public JLArray(Array a) : this(BoxArray(a)) { }
         public JLArray(IntPtr ptr) => this.ptr = ptr;
+
 
         public static implicit operator IntPtr(JLArray value) => value.ptr;
         public static implicit operator JLArray(IntPtr ptr) => new JLArray(ptr);
         public static implicit operator JLArray(JLVal ptr) => new JLArray(ptr);
         public static implicit operator JLVal(JLArray ptr) => new JLVal(ptr);
 
+        public static unsafe JLArray Alloc(JLType eltype, params int[] dimensions){
+            fixed (void* p = dimensions){
+                return JLFun._MakeArrayF.Invoke(eltype, new JLVal(p), dimensions.Length);
+            }
+        }
+
         public static bool operator ==(JLArray value1, IntPtr value2) => new JLVal(value1) == new JLVal(value2);
         public static bool operator !=(JLArray value1, IntPtr value2) => new JLVal(value1) != new JLVal(value2);
         public override string ToString() => new JLVal(this).ToString();
         public override bool Equals(object o) => new JLVal(this).Equals(o);
         public override int GetHashCode() => new JLVal(this).GetHashCode();
-        public JLGCStub Pin() => new JLVal(this).Pin();
+        public JuliaReference Pin() => new JLVal(this).Reference();
         public void Println() => new JLVal(this).Println();
         public void Print() => new JLVal(this).Print();
         public long Length { get => new JLVal(this).Length; }
@@ -138,80 +149,87 @@ namespace JuliaInterface
             set => new JLVal(this).setEl(idx, value);
         }
 
-        private long[] _UnboxLongArray(){
-            long[] arr = new long[Length];
-            for (int i = 0; i < arr.Length; ++i)
-                arr[i] = this[i + 1].UnboxInt64();
-            return arr;
-        }
-
         public unsafe T* UnsafeRef<T>() where T : unmanaged => (T*)JuliaCalls.jl_array_ptr(this);
 
-        public unsafe Array UnsafeCopy<T>() where T: unmanaged{
-            var dims = Size._UnboxLongArray();
-            var arr = Array.CreateInstance(typeof(T), dims);
-            var raw_ptr = (T*) JuliaCalls.jl_array_ptr(this);
-            GCHandle handle = GCHandle.Alloc(arr, GCHandleType.Pinned);
-            Buffer.MemoryCopy(raw_ptr, AddressHelper.GetAddress(arr).ToPointer(), Length, Length);
-            handle.Free();
-            return arr;
+        public unsafe T[] UnsafeCopyTo<T>(T[] dest) where T : unmanaged{
+            if (ElType == JLType.JLAny)
+                return (T[]) UnboxArray();
+            return (T[]) UnsafeCopyTo(UnsafeRef<T>(), dest);
         }
 
-        private static unsafe JLArray BoxArray<T>(Array a, JLType elType, Func<T, JLVal> boxLambda){
-            var dims = (JLVal) new JLArray(JLType.JLInt64, a.Rank);
+        public unsafe T[,] UnsafeCopyTo<T>(T[,] dest) where T : unmanaged
+        {
+            if (ElType == JLType.JLAny)
+                return (T[,])UnboxArray();
+            return (T[,])UnsafeCopyTo(UnsafeRef<T>(), dest);
+        }
 
+        private unsafe Array UnsafeCopyTo<T>(T* src, Array dest) where T : unmanaged{
+            Julia.PUSH_GC(this);
+            var handle = GCHandle.Alloc(dest, GCHandleType.Pinned);
+            Buffer.MemoryCopy(src, handle.AddrOfPinnedObject().ToPointer(), Length * sizeof(T), Length * sizeof(T));
+            handle.Free();
+            Julia.POP_GC();
+            return dest;
+        }
+
+        public unsafe T[] UnsafeCopyTo<T>() where T : unmanaged => UnsafeCopyTo((T[]) Array.CreateInstance(typeof(T), Length));
+      
+        public unsafe JLArray UnsafeCopyFrom<T>(Array src) where T : unmanaged{
+            Julia.PUSH_GC(this);
+            var raw_ptr = UnsafeRef<T>();
+            var handle = GCHandle.Alloc(src, GCHandleType.Pinned);
+            Buffer.MemoryCopy(handle.AddrOfPinnedObject().ToPointer(), raw_ptr, Length * sizeof(T), Length * sizeof(T));
+            handle.Free();    
+            Julia.POP_GC();
+            return this;
+        }
+        
+        private static int[] getsize(Array a){
+            int[] d = new int[a.Rank];
             for (int i = 0; i < a.Rank; ++i)
-                dims[i + 1] = (long) a.GetLength(i);
+                d[i] = a.GetLength(i);
+            return d;
+        }
 
-            var jlarray = JLFun.MakeArrayF.Invoke(elType, dims);
+        private static JLArray BoxArray(Array a)
+        {
+            var jlarray = Alloc(JLType.JLAny, getsize(a));
             var iter = JLFun.EachIndexF.Invoke(jlarray);
             var next = JLFun.IterateF.Invoke(iter);
             var arriter = new ArrayEnumerator(a);
-
-            while (arriter.MoveNext())
-            {
+            while (arriter.MoveNext()){
                 var state = next[2];
-                jlarray[next[1]] = boxLambda((T) arriter.Current);
+                jlarray[next[1]] = new JLVal(arriter.Current);
                 next = JLFun.IterateF.Invoke(iter, state);
             }
-
             return jlarray;
         }
 
-        //TODO: If elType != Any && elType == this.GetJLType() => Copy Memory Directly
-        private unsafe Array UnboxArray<T>(Func<JLVal, T> unboxLambda)
-        {
-            var dims = Size._UnboxLongArray();
-            var arr = Array.CreateInstance(typeof(T), dims);
+        public unsafe Array UnboxArray(){
+            Array arr;
+            if(sizeof(SizeT) == sizeof(Int64))
+                arr = Array.CreateInstance(typeof(object), Size.UnboxNTuple<Int64>());
+            else
+                arr = Array.CreateInstance(typeof(object), Size.UnboxNTuple<Int32>());
             var iter = JLFun.EachIndexF.Invoke(this);
             var next = JLFun.IterateF.Invoke(iter);
             var arriter = new ArrayEnumerator(arr);
 
             while (arriter.MoveNext()){
                 var state = next[2];
-                arriter.Current = unboxLambda(this[next[1]]);
+                arriter.Current = this[next[1]].Value;
                 next = JLFun.IterateF.Invoke(iter, state);
             }
-
             return arr;
         }
 
-        public Array UnboxInt64Array() => UnboxArray(v => v.UnboxInt64());
-        public Array UnboxInt32Array() => UnboxArray(v => v.UnboxInt32());
-        public Array UnboxInt16Array() => UnboxArray(v => v.UnboxInt16());
-        public Array UnboxInt8Array() => UnboxArray(v => v.UnboxInt8());
-        public Array UnboxBoolArray() => UnboxArray(v => v.UnboxBool());
-        public Array UnboxFloat64Array() => UnboxArray(v => v.UnboxFloat64());
-        public Array UnboxFloat32Array() => UnboxArray(v => v.UnboxFloat32());
-        public Array UnboxPtrArray() => UnboxArray(v => v.UnboxPtr());
-        public Array UnboxObjectArray() => UnboxArray(v => v.Value);
-        public Array UnboxUInt64Array() => UnboxArray(v => v.UnboxUInt64());
-        public Array UnboxUInt32Array() => UnboxArray(v => v.UnboxUInt32());
-        public Array UnboxUInt16Array() => UnboxArray(v => v.UnboxUInt16());
-        public Array UnboxUInt8Array() => UnboxArray(v => v.UnboxUInt8());
-        public Array UnboxCharArray() => UnboxArray(v => v.UnboxChar());
-        public Array UnboxStringArray() => UnboxArray(v => v.UnboxString());
+        public unsafe T[] UnboxNTuple<T>() where T : unmanaged => (T[]) UnsafeCopyTo((T*) ptr, (T[]) Array.CreateInstance(typeof(T), Length));
 
+        public unsafe T[] UnboxArray<T>() where T : unmanaged => UnsafeCopyTo<T>();
 
+        public static JLArray CreateArray<T>(T[] src) where T : unmanaged => new JLArray(JLType.GetJLType(typeof(T)), src.Length).UnsafeCopyFrom<T>(src);
+
+        public static JLArray CreateArray(Array a) => BoxArray(a);
     }
 }

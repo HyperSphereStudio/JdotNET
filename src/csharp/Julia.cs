@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 //Written by Johnathan Bizzano 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
     public class JuliaOptions
     {
@@ -71,7 +71,6 @@ namespace JuliaInterface
         private static volatile bool _PreviosulyLoaded = false;
         private static object _gclock = new object();
         private static unsafe JuliaCalls.JLGCFrame* lastFrame;
-        internal static string juliaInterfaceModuleName = "Main.JuliaInterface";
 
         public static string JuliaDir {
             get {
@@ -112,11 +111,9 @@ namespace JuliaInterface
             JuliaDll.Open();
             jl_init_code(options, sharpInit);
             NativeSharp.init();
-            ObjectCollector.init();
+            JLType.finish_init_types();
+            ObjectManager.init();
             Environment.CurrentDirectory = env;
-
-            if(sharpInit)
-                Eval("using Main.JuliaInterface");
 
             unsafe
             {
@@ -154,27 +151,28 @@ namespace JuliaInterface
                 }
                 JuliaCalls.jl_init();
             }
-            else
-                juliaInterfaceModuleName = "JULIAdotNET.JuliaInterface";
+
+            if (sharpInit) {
+                JuliaCalls.jl_eval_string(
+                       @"using JULIAdotNET
+                       using JULIAdotNET.Sharp
+                       using JULIAdotNET.Sharp.Native
+                       using JULIAdotNET.Sharp.MemoryManagement
+                       using JULIAdotNET.Sharp.Reflection");
+            }
 
             JLModule.init_mods();
             JLType.init_types();
             JLFun.init_funs();
-        
-            if(sharpInit)
-                Eval(Encoding.UTF8.GetString(Resource1.JuliaInterface), "JuliaInterface.jl");
-
-            JLModule.finish_init_mods();
-            JLType.finish_init_types();
-            JLFun.finish_init_funs();
+            
+            CheckExceptions();
         }
 
+        public static void Throw(Exception e) => JuliaCalls.jl_throw(JLType.SharpJLException.Create(NativeSharp.CreateJuliaVal(JLType.SharpObject, e)));
+        
         public static bool Isa(JLVal v, JLType t) => JuliaCalls.jl_isa(v, t) != 0;
 
-        public static JLGCStub PinGC(IntPtr val) => ObjectCollector.PushJL(val);
-
-        public static void SetGlobal(JLModule m, JLSym sym, JLVal val)
-        {
+        public static void SetGlobal(JLModule m, JLSym sym, JLVal val){
             JuliaCalls.jl_set_global(m, sym, val);
             CheckExceptions();
         }
@@ -192,20 +190,22 @@ namespace JuliaInterface
                 throw new JuliaException(JuliaCalls.jl_exception_occurred());
         }
 
+
         public static void Exit(int code)
         {
             if (!IsInitialized) return;
             _IsInitialized = false;
             JuliaCalls.jl_atexit_hook(code);
-            NativeSharp.destroy();
             JuliaDll.Close();
         }
 
         public static JLVal Eval(string str, string filename = null){
-            JLVal val = filename == null ? JuliaCalls.jl_eval_string(str) : JLFun.LinedEval.Invoke(str, filename, JLModule.Main);
+            JLVal val = filename == null ? JuliaCalls.jl_eval_string(str) : JLFun._LinedEval.Invoke(str, filename, JLModule.Main);
             CheckExceptions();
             return val;
         }
+
+        public static JLVal MakeTuple(JLArray vals) => JLFun._MakeTupleF.Invoke(vals);
 
         public static JLFun GetFunction(JLModule mod, string fun) => GetGlobal(mod, fun);
         
@@ -236,6 +236,7 @@ namespace JuliaInterface
         
     }
 
+#if NET
     public class CSharp
     {
         [UnmanagedCallersOnly]
@@ -246,4 +247,5 @@ namespace JuliaInterface
             return 0;
         }
     }
+#endif
 }

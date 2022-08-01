@@ -2,6 +2,7 @@ using JuliaInterface;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TestJuliaInterface
 {
@@ -30,8 +31,10 @@ namespace TestJuliaInterface
         public void FunctionParamTest()
         {
             JLFun fun = Julia.Eval("t(x::Int) = Int32(x)");
-            Assert.AreEqual((IntPtr)JLType.JLInt32, (IntPtr)fun.ReturnType, "Julia Function Return Type Failure");
-            Assert.AreEqual((IntPtr)JLType.JLInt64, (IntPtr)fun.ParameterTypes[1], "Julia Function Parameter Type Failure");
+            Assert.Multiple(() => {
+                Assert.AreEqual((IntPtr)JLType.JLInt32, (IntPtr)fun.ReturnType, "Julia Function Return Type Failure");
+                Assert.AreEqual((IntPtr)JLType.JLInt64, (IntPtr)fun.ParameterTypes[1], "Julia Function Parameter Type Failure");
+            });
         }
 
         [Test]
@@ -45,17 +48,16 @@ namespace TestJuliaInterface
         }
 
         [Test]
-        public void CopyArray()
+        public void Array()
         {
-            JLArray arr = Julia.Eval("[2, 3, 4]");
-            Assert.IsTrue(Enumerable.SequenceEqual((long[]) arr.UnboxInt64Array(), new long[] {2, 3, 4}), "Int Array copy failed");
-            arr = Julia.Eval("[2.0, 3.0, 4.0]");
-            Assert.IsTrue(Enumerable.SequenceEqual((double[]) arr.UnboxFloat64Array(), new double[] { 2, 3, 4 }), "Double Array copy failed");
-
-            JLVal a = new object[]{ 2 };
-
-            Assert.IsTrue(a == Julia.Eval("[2]"), "Julia Array Box Conversion Failure");
-          //  Assert.IsTrue(a.Value == new object[] { 2 }, "Julia Array Unbox Conversion Failure");
+            JLArray inta = Julia.Eval("[2, 3, 4]"), doba = Julia.Eval("[2.0, 3.0, 4.0]");
+            JLVal oa = new object[] { 2 }, ma = new object[,] { { 2, 3 }, { 3, 4 } };
+            Assert.Multiple(() => {
+                Assert.IsTrue(Enumerable.SequenceEqual(inta.UnboxArray<long>(), new long[] { 2, 3, 4 }), "Int Array copy failed");
+                Assert.IsTrue(Enumerable.SequenceEqual(doba.UnboxArray<double>(), new double[] { 2, 3, 4 }), "Double Array copy failed");
+                Assert.IsTrue(oa == Julia.Eval("[2]"), "Julia Array Box Conversion Failure");
+                Assert.IsTrue(ma == Julia.Eval("[2 3; 3 4]"), "Julia Multiarray failure");
+            });
         }
 
     }
@@ -78,43 +80,52 @@ namespace TestJuliaInterface
 
         [Test]
         public void Construction(){
-            Assert.IsFalse(Julia.Eval(@"
+            Assert.Multiple(() => {
+                Assert.IsFalse(Julia.Eval(@"
                         item = T""ReflectionTestClass"".new[](3)
                         return item
                         ").IsNull, "Object instantiation failure");
 
-            Assert.IsFalse(Julia.Eval(@"
+                Assert.IsFalse(Julia.Eval(@"
                         itemG = T""ReflectionGenericTestClass`1"".new[T""System.Int64""](3)
                         return itemG
                         ").IsNull, "Generic Object instantiation failure");
+            });
         }
 
         [Test]
         public void GetField(){
             if (!Julia.Eval("@isdefined itemG").UnboxBool())
                 Construction();
-            Assert.AreEqual(3, Julia.Eval("itemG.g[]").Value, "Failed to Get Field");
-            Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".TestStaticField[]").Value);
+            Assert.Multiple(() => {
+                Assert.AreEqual(3, Julia.Eval("itemG.g[]").Value, "Failed to Get Field");
+                Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".TestStaticField[]").Value);
+            });
         }
 
         [Test]
         public void Method()
         {
-            Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".StaticMethod[]()").Value);
-            //Assert.AreEqual(3, Julia.Eval(@"T""ReflectionTestClass"".StaticGenericMethod[T""System.Int64""]()").Value);
+            Assert.Multiple(() => {
+                Assert.AreEqual(5, Julia.Eval(@"T""ReflectionTestClass"".StaticMethod[]()").Value);
+                //Assert.AreEqual(3, Julia.Eval(@"T""ReflectionTestClass"".StaticGenericMethod[T""System.Int64""]()").Value);
+            });
         }
 
         [Test]
         public void BoxingTest(){
-            Assert.IsTrue((long) Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
+            Assert.Multiple(() => {
+                Assert.IsTrue((long)Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
+            });
             //Assert.AreEqual(Julia.Eval("sharpunbox(T""ReflectionTestClass"".TestStaticField)"), 5, "Unboxing Failed")
         }
 
         [Test]
         public void UsingTest()
         {
-            
-            Julia.Eval(@"T""Int64""");
+            Assert.Multiple(() => {
+                Julia.Eval(@"T""Int64""");
+            });
         }
 
         [Test]
@@ -135,6 +146,14 @@ namespace TestJuliaInterface
             Assert.AreEqual(1, ObjectCollector.CSharpObjLen, "Unable to pin object");
             Julia.Eval("free(handle)");
             Assert.AreEqual(0, ObjectCollector.CSharpObjLen, "Unable to free object");
+        }
+
+        [Test]
+        public void SharpStreams(){
+            var i = new SharpInputStream();
+            var o = new SharpOutputStream();
+
+            i.Write("Test!");
         }
     }
 

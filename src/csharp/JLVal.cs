@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 //Written by Johnathan Bizzano 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
 
     [StructLayout(LayoutKind.Sequential)]
@@ -12,6 +13,7 @@ namespace JuliaInterface
 
         public JLVal(object o) : this(DotNotType(o).ptr) { }
         public JLVal(IntPtr ptr) => this.ptr = ptr;
+        public unsafe JLVal(void* l) : this(JuliaCalls.jl_box_voidpointer(new IntPtr(l))) { }
         public JLVal(long l) : this(JuliaCalls.jl_box_int64(l)) { }
         public JLVal(int l) : this(JuliaCalls.jl_box_int32(l)) { }
         public JLVal(short l) : this(JuliaCalls.jl_box_int16(l)) { }
@@ -26,7 +28,10 @@ namespace JuliaInterface
         public JLVal(float l) : this(JuliaCalls.jl_box_float32(l)) { }
         public JLVal(string s) : this(JuliaCalls.jl_cstr_to_string(s)) { }
         public JLVal(Array a) : this(new JLArray(a)) { }
-        public JLVal(Type t) : this(Julia.AllocStruct(JLType.SharpType, AddressHelper.GetAddress(t))) { }
+        public JLVal(Type t) : this(NativeSharp.GetType(t)) { }
+        public JLVal(ConstructorInfo ci) : this(NativeSharp.GetConstructor(ci)) { }
+        public JLVal(MethodInfo mi) : this(NativeSharp.GetMethod(mi)) { }
+        public JLVal(FieldInfo fi) : this(NativeSharp.GetField(fi)) { }
 
 
         public static implicit operator IntPtr(JLVal value) => value.ptr;
@@ -45,6 +50,10 @@ namespace JuliaInterface
         public static implicit operator JLVal(byte l) => new JLVal(l);
         public static implicit operator JLVal(sbyte l) => new JLVal(l);
         public static implicit operator JLVal(Array l) => new JLVal(l);
+        public static implicit operator JLVal(Type l) => new JLVal(l);
+        public static implicit operator JLVal(MethodInfo l) => new JLVal(l);
+        public static implicit operator JLVal(ConstructorInfo l) => new JLVal(l);
+        public static implicit operator JLVal(FieldInfo l) => new JLVal(l);
 
         public static explicit operator long(JLVal value) => value.UnboxInt64();
         public static explicit operator ulong(JLVal value) => value.UnboxUInt64();
@@ -60,6 +69,10 @@ namespace JuliaInterface
         public static explicit operator double(JLVal value) => value.UnboxFloat64();
         public static explicit operator float(JLVal value) => value.UnboxFloat32();
         public static explicit operator Array(JLVal value) => value.UnboxArray();
+        public static explicit operator Type(JLVal value) => value.UnboxSharpType();
+        public static explicit operator FieldInfo(JLVal value) => value.UnboxFieldInfo();
+        public static explicit operator MethodInfo(JLVal value) => value.UnboxMethodInfo();
+        public static explicit operator ConstructorInfo(JLVal value) => value.UnboxConstructorInfo();
 
         public static bool operator ==(JLVal value1, JLVal value2) => JLFun.IsEqualF.Invoke(value1, value2).UnboxBool();
         public static bool operator !=(JLVal value1, JLVal value2) => JLFun.IsNEqualF.Invoke(value1, value2).UnboxBool();
@@ -152,21 +165,28 @@ namespace JuliaInterface
         public char UnboxChar() => (char) JuliaCalls.jl_unbox_int32(this);
         public IntPtr UnboxPtr() => JuliaCalls.jl_unbox_voidpointer(this);
         public string UnboxString() => Julia.UnboxString(this);
-        public object UnboxSharpObject() => AddressHelper.GetInstance<object>((IntPtr) GetFieldValue("ptr").UnboxInt64());
+        public object UnboxSharpObject() => JLFun._UnboxsharpobjectF.Invoke(this);
         public Type UnboxSharpType() => (Type) UnboxSharpObject();
-        public Array UnboxArray() => new JLArray((IntPtr) this).UnboxObjectArray();
+        public Array UnboxArray() => new JLArray(this).UnboxArray();
+        public FieldInfo UnboxFieldInfo() => (FieldInfo) UnboxSharpObject();
+        public ConstructorInfo UnboxConstructorInfo() => (ConstructorInfo) UnboxSharpObject();
+        public MethodInfo UnboxMethodInfo() => (MethodInfo)UnboxSharpObject();
+
+        public JLVal Convert(JLType t) => JLFun.ConvertF.Invoke(t, this);
         public JLVal GetFieldValue(JLSym fieldName) => JLFun.GetFieldF.Invoke(this, fieldName);
         public JLVal SetFieldValue(JLSym fieldName, JLVal v) => JLFun.SetField_F.Invoke(this, fieldName, v);
+        
 
         public override string ToString() => JLFun.StringF.Invoke(this).UnboxString();
         public void Println() => JLFun.PrintlnF.Invoke(this);
         public void Print() => JLFun.PrintF.Invoke(this);
-        public JLGCStub Pin() => Julia.PinGC(this);
+        public ObjectManager.JuliaReference Reference() => ObjectManager._CreateJulia4SharpReference(this);
         public void Add(JLVal val) => JLFun.Push_F.Invoke(this, val);
         public void Remove(JLVal val) => JLFun.Delete_F.Invoke(this, val);
         public void RemoveAt(JLVal idx) => JLFun.Deleteat_F.Invoke(this, idx);
         public void RemoveAt(JLRange range) => JLFun.Deleteat_F.Invoke(this, range);
         public void Clear() => JLFun.Empty_F.Invoke(this);
+        public void Write(JLVal v) => JLFun.WriteF.Invoke(this, v);
 
         public JLVal this[JLVal idx] {
             get => JLFun.GetIndexF.Invoke(this, idx);
@@ -203,15 +223,21 @@ namespace JuliaInterface
                 else if (o is bool)
                     return new JLVal((bool)o);
                 else if (o is string)
-                    return new JLVal((string) o);
+                    return new JLVal((string)o);
                 else if (o is Array)
-                    return new JLVal((Array) o);
+                    return new JLVal((Array)o);
                 else if (o is IntPtr)
-                    return Julia.BoxPtr((IntPtr) o);
+                    return Julia.BoxPtr((IntPtr)o);
                 else if (o is Type)
-                    return new JLVal((Type) o);
+                    return new JLVal((Type)o);
+                else if (o is MethodInfo)
+                    return new JLVal((MethodInfo)o);
+                else if (o is ConstructorInfo)
+                    return new JLVal((ConstructorInfo)o);
+                else if (o is FieldInfo)
+                    return new JLVal((FieldInfo)o);
                 else
-                    return Julia.AllocStruct(JLType.SharpObject, AddressHelper.GetAddress(o).ToInt64());
+                    return NativeSharp.BoxObject(o);
             }
         }
     }

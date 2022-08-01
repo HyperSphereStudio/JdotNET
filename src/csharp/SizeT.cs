@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 //Written By Johnathan Bizzano
-namespace JuliaInterface
+namespace JULIAdotNET
 {
     public struct SizeT
     {
@@ -30,6 +30,8 @@ namespace JuliaInterface
         public static implicit operator SizeT(int i) => new SizeT(i);
         public static implicit operator SizeT(long i) => new SizeT(i);
         public static implicit operator SizeT(JLVal v) => new SizeT(v);
+        public static implicit operator SizeT(IntPtr v) => new SizeT(v);
+        public static unsafe implicit operator IntPtr(SizeT i) => new IntPtr(i.p.ToPointer());
         public static implicit operator uint(SizeT i) => i.p.ToUInt32();
         public static implicit operator ulong(SizeT i) => i.p.ToUInt64();
         public static implicit operator int(SizeT i) => (int)i.p.ToUInt32();

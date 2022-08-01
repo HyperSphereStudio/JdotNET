@@ -2,15 +2,33 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
-    public class JLUtils
+    public static class JLUtils
     {
+        private static Dictionary<Type, bool> cachedTypes = new Dictionary<Type, bool>();
+
+        public static bool IsUnManaged(this Type t){
+            var result = false;
+            if (cachedTypes.ContainsKey(t))
+                return cachedTypes[t];
+            else if (t.IsPrimitive || t.IsPointer || t.IsEnum)
+                result = true;
+            else if (t.IsGenericType || !t.IsValueType)
+                result = false;
+            else
+                result = t.GetFields(BindingFlags.Public |
+                   BindingFlags.NonPublic | BindingFlags.Instance)
+                    .All(x => IsUnManaged(x.FieldType));
+            cachedTypes.Add(t, result);
+            return result;
+        }
 
         internal static string GetJuliaDir()
         {

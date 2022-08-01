@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 //Written By Johnathan Bizzano
-namespace JuliaInterface
+namespace JULIAdotNET
 {
 
     public class JuliaCalls
@@ -113,7 +113,7 @@ namespace JuliaInterface
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern JLVal jl_call(JLFun f, JLVal[] args, Int32 arg_count);
+        public static unsafe extern JLVal jl_call(JLFun f, JLVal* args, Int32 arg_count);
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -554,6 +554,7 @@ namespace JuliaInterface
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr jl_array_ptr(JLArray a);
+
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JLType jl_array_eltype(JLArray a);

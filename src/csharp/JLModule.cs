@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 //Written by Johnathan Bizzano 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct JLModule
@@ -32,22 +32,26 @@ namespace JuliaInterface
         public void Print() => new JLVal(this).Print();
         public JLVal GetGlobal(JLSym name) => Julia.GetGlobal(this, name);
         public JLFun GetFunction(string name) => Julia.GetFunction(this, name);
-        public JLVal Eval(string expr, string filename = null) => filename == null ? core_eval.Invoke(expr) : JLFun.LinedEval.Invoke(expr, filename, this);
+        public JLVal Eval(string expr, string filename = null) => filename == null ? core_eval.Invoke(this, expr) : JLFun._LinedEval.Invoke(expr, filename, this);
+        public JLType GetType(string typename) => Eval(typename);
 
-
-        public static JLModule Base, Core, Main, JuliaInterface, Meta;
+        public static JLModule Base, Core, Main, Meta, JULIAdotNET, Sharp, Sharp_Native, Sharp_Reflection, Sharp_MemoryManagement;
 
         private static JLFun core_eval;
 
         internal static void init_mods(){
-            Base = Julia.Eval("Base").ptr;
-            Core = Julia.Eval("Core").ptr;
-            Main = Julia.Eval("Main").ptr;
-            Meta = Julia.Eval("Meta").ptr;
+            Base = Julia.Eval("Base");
+            Core = Julia.Eval("Core");
+            Main = Julia.Eval("Main");
+            Meta = Julia.Eval("Meta");
 
-            core_eval = Core.GetFunction("eval").ptr;
+            JULIAdotNET = Julia.Eval("JULIAdotNET");
+            Sharp = JULIAdotNET.GetGlobal("Sharp");
+            Sharp_Native = Sharp.GetGlobal("Native");
+            Sharp_Reflection = Sharp.GetGlobal("Reflection");
+            Sharp_MemoryManagement = Sharp.GetGlobal("MemoryManagement");
+            core_eval = Sharp.GetGlobal("_eval");
         }
 
-        internal static void finish_init_mods() => JuliaInterface = Julia.Eval(Julia.juliaInterfaceModuleName).ptr;
     }
 }

@@ -1,43 +1,164 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Reflection;
 
 //Written by Johnathan Bizzano
 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct NativeString{
+        IntPtr len;
+        IntPtr data;
 
-    internal class NativeSharp
+        public NativeString(IntPtr len, IntPtr data){
+            this.len = len;
+            this.data = data;
+        }
+
+        public static explicit operator string(NativeString ns) => ns.Value;
+        public static unsafe implicit operator NativeString(IntPtr* ptr) => new NativeString(*ptr++, *ptr);
+
+        public string Value => Marshal.PtrToStringUni(data, len.ToInt32());
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct NativeArray<T>{
+        public IntPtr len;
+        public NativeObject<T>* data;
+
+        public unsafe NativeArray(IntPtr len, NativeObject<T>* data){
+            this.len = len;
+            this.data = data;
+        }
+
+        public static explicit operator T[](NativeArray<T> na) => na.Value;
+        public static explicit operator object[](NativeArray<T> na) => na.OValue;
+        public static unsafe implicit operator NativeArray<T>(IntPtr* ptr) => new NativeArray<T>(*ptr++, (NativeObject<T>*) ptr);
+
+        public object[] OValue {
+            get {
+                var l = len.ToInt32();
+                var t = new object[l];
+                for (int i = 0; i < l; ++i)
+                    t[i] = (T)data[i];
+                return t;
+            }
+        }
+
+        public T[] Value {
+            get {
+                var l = len.ToInt32();
+                var t = new T[l];
+                for (int i = 0; i < l; ++i)
+                    t[i] = (T) data[i];
+                return t;
+            }
+        }
+    }
+
+    public struct NativeObject<T>{
+        public IntPtr data;
+
+        public NativeObject(T o) => data = new IntPtr(ObjectManager._CreateSharp4JuliaReference(o));
+
+        public NativeObject(IntPtr data) => this.data = data;
+
+        public static explicit operator T(NativeObject<T> no) => no.Value;
+        public static unsafe implicit operator NativeObject<T>(IntPtr* ptr) => new NativeObject<T>(*ptr);
+
+        public T Value => (T) ObjectManager._GetSharp4JuliaValue(data.ToInt32());
+    }
+
+    public class NativeSharp
     {
-        private static BindingFlags MethodBindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.SetProperty;
-        private static List<Delegate> pinnedDelegates = new List<Delegate>();
+        private static readonly BindingFlags MethodBindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.SetProperty;
+        private static JLFun RegisterSharpFunctionHandle;
 
-        internal delegate JLVal Invokable(object[] args);
-        delegate JLVal SharpInvoke(long invokable, JLArray parameters);
-        delegate JLVal SharpConstructor(long clazz);
-        delegate JLVal SharpGenericConstructor(long non_gen_constructor, JLArray generic_types);
-        delegate JLVal SharpMethod(long clazz, string method);
-        delegate JLVal SharpGenericMethod(long non_gen_method, JLArray generic_types);
-        delegate JLVal SharpClass(string clazz);
-        delegate JLVal SharpField(long clazz, string field);
-        delegate JLVal SharpPINgc(long objectToPin);
-        delegate void SharpFreegc(IntPtr val);
-        delegate long SharpGetType(long obj);
-        delegate JLVal SharpToString(long obj);
-        delegate long SharpGetHashCode(long obj);
-        delegate bool SharpEquals(long obj1, long obj2);
-        delegate long SharpBox(JLVal v);
-        delegate JLVal SharpUnBox(long obj);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public unsafe delegate IntPtr JuliaNativeInterface(IntPtr* data);
 
-        private static object ReadSharpVal(long l) => ReadSharpVal<object>(l);
-        private static T ReadSharpVal<T>(long l) => AddressHelper.GetInstance<T>((IntPtr) l);
-        private static long WriteSharpVal(object o) => AddressHelper.GetAddress(o).ToInt64();
-        private static JLVal CreateJuliaVal(JLType t, object o) => Julia.AllocStruct(t, (JLVal) WriteSharpVal(o));
+        public static unsafe JLFun RegisterSharpFunction(string name, JuliaNativeInterface jns){
+            JuliaNativeInterface wrappedInterface = data => {
+                try {
+                    return jns(data);
+                }catch (Exception e){
+                    Julia.Throw(new Exception("[Native Sharp Function::Sharp] Exception in " + name + " due to " + e.Message, e));
+                    return IntPtr.Zero;
+                }
+            };
+            ObjectManager._CreateSharp4JuliaReference(jns);
+            var ptr = Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(wrappedInterface));
+            var sym = new JLSym(name);
+            return RegisterSharpFunctionHandle.Invoke(sym, ptr);
+        }
 
+        public static JLFun GetRegistedSharpFunction(JLSym sym) => RegisterSharpFunctionHandle.Invoke(sym, Julia.BoxPtr(new IntPtr(0)));
+
+        public static JLVal GetType(Type t) => CreateJuliaVal(JLType.SharpType, t);
+        public static JLVal GetType(string name) => GetType(FindType(name));
+        public static JLVal GetType(NativeString name) => GetType(name.Value);
+
+        public static JLVal GetGenericType(Type t, params Type[] generic_types) => GetType(t.MakeGenericType(generic_types));
+        public static JLVal GetGenericType(NativeObject<Type> jltype, NativeArray<Type> generic_types) => GetGenericType(jltype.Value, generic_types.Value);
+
+        public static JLVal GetMethod(MethodInfo m) => CreateJuliaVal(JLType.SharpMethod, m);
+        public static JLVal GetMethod(Type t, string name) => GetMethod(t.GetMethod(name, MethodBindingFlags));
+        public static JLVal GetMethod(Type t, string name, params Type[] types) => GetMethod(t.GetMethod(name, MethodBindingFlags, null, CallingConventions.Any, types, null));
+        public static JLVal GetMethod(NativeObject<Type> t, NativeString name) => GetMethod(t.Value, name.Value);
+        public static JLVal GetMethod(NativeObject<Type> t, NativeString name, NativeArray<Type> types) => GetMethod(t.Value, name.Value, types.Value);
+        public static JLVal GetGenericMethod(MethodInfo m, params Type[] generic_types) => GetMethod(m.MakeGenericMethod(generic_types));
+        public static JLVal GetGenericMethod(NativeObject<MethodInfo> m, NativeArray<Type> generic_types) => GetGenericMethod(m.Value, generic_types.Value);
+        public static JLVal InvokeMethod(MethodInfo m, object owner, params object[] args) => BoxObject(m.Invoke(owner, args));
+        public static JLVal InvokeMethod(NativeObject<MethodInfo> m, NativeObject<object> owner, NativeArray<object> args) => InvokeMethod(m.Value, owner.Value, args.OValue);
+
+        public static JLVal BoxObject(object o) => CreateJuliaVal(JLType.SharpObject, o);
+        public static JLVal BoxObject(JLVal v) => BoxObject(v.Value);
+        public static JLVal UnBoxObject(object o) => new JLVal(o);
+        public static JLVal UnBoxObject(NativeObject<object> o) => UnBoxObject(o.Value);
+
+        public static JLVal GetConstructor(ConstructorInfo c) => CreateJuliaVal(JLType.SharpConstructor, new NativeObject<object>(c));
+        public static JLVal GetConstructor(Type t) => GetConstructor(t.GetConstructor(Type.EmptyTypes));
+        public static JLVal GetConstructor(NativeObject<Type> t) => GetConstructor(t.Value);
+        public static JLVal GetConstructorByTypes(Type t, params Type[] types) => GetConstructor(t.GetConstructor(types));
+        public static JLVal GetConstructorByTypes(NativeObject<Type> t, NativeArray<Type> args) => GetConstructorByTypes(t.Value, args.Value);
+        
+        public static JLVal InvokeConstructor(ConstructorInfo c, params object[] args) => BoxObject(c.Invoke(args));
+        public static JLVal InvokeConstructor(NativeObject<ConstructorInfo> c, NativeArray<Type> types) => InvokeConstructor(c.Value, types.OValue);
+
+        public static JLVal GetField(FieldInfo f) => CreateJuliaVal(JLType.SharpField, f);
+        public static JLVal GetField(Type t, string name) => GetField(t.GetField(name, MethodBindingFlags));
+        public static JLVal GetField(NativeObject<Type> t, NativeString name) => GetField(t.Value, name.Value);
+
+        public static JLVal GetFieldValue(FieldInfo f, object owner) => BoxObject(f.GetValue(owner));
+        public static JLVal GetFieldValue(NativeObject<FieldInfo> f, NativeObject<object> owner) => GetFieldValue(f.Value, owner.Value);
+        public static IntPtr SetFieldValue(FieldInfo f, object owner, object value) {
+            f.SetValue(owner, value);
+            return IntPtr.Zero;
+        }
+        public static IntPtr SetFieldValue(NativeObject<FieldInfo> f, NativeObject<object> owner, NativeObject<object> value) => SetFieldValue(f.Value, owner.Value, value.Value);
+
+        public static JLVal GetObjectType(object o) => GetType(o == null ? null : o.GetType());
+        public static JLVal GetObjectType(NativeObject<object> o) => GetObjectType(o.Value);
+
+        public static JLVal ToString(object o) => new JLVal(o == null ? "null" : o.ToString());
+        public static JLVal ToString(NativeObject<object> o) => ToString(o.Value);
+
+        public static JLVal GetHashCode(object o) => BoxObject(o == null ? 0 : o.GetHashCode());
+        public static JLVal GetHashCode(NativeObject<object> o) => GetHashCode(o.Value);
+
+        public static JLVal ObjectEquals(object o1, object o2) => new JLVal(Equals(o1, o2));
+        public static JLVal ObjectEquals(NativeObject<object> o1, NativeObject<object> o2) => ObjectEquals(o1.Value, o2.Value);
+        public static JLVal CreateJuliaVal(JLType t, NativeObject<object> o) => Julia.AllocStruct(t, GetNativeObject(o));
+        public static JLVal CreateJuliaVal(JLType t, object o) => CreateJuliaVal(t, new NativeObject<object>(o));
+        public static JLVal GetSharpMethodInstance(MethodInfo mi, object o) => Julia.AllocStruct(JLType.SharpOwnerMethod, GetMethod(mi), BoxObject(o));
+        public static JLVal GetSharpFieldInstance(FieldInfo fi, object o) => Julia.AllocStruct(JLType.SharpOwnerField, GetField(fi), BoxObject(o));
+        public static JLVal GetNativeObject(object o) => GetNativeObject(new NativeObject<object>(o));
+        public static JLVal GetNativeObject(NativeObject<object> o) => JLType.NativeObject.Create(Julia.BoxPtr(o.data));
+        public static JLVal FreeSharp4JuliaReference(IntPtr ptr){
+            ObjectManager._FreeSharp4JuliaReference(ptr.ToInt32());
+            return IntPtr.Zero;
+        }
 
         private static Type FindType(string name)
         {
@@ -68,255 +189,43 @@ namespace JuliaInterface
             return Type.GetType(name);
         }
 
-        private static JLVal GetPtr(Delegate del){
-            pinnedDelegates.Add(del);
-            return Julia.BoxPtr(Marshal.GetFunctionPointerForDelegate(del));
-        }
+        internal unsafe static void init() {
+            RegisterSharpFunctionHandle = JLModule.Sharp_Native.GetFunction("RegisterSharpFunction");
 
-        private static JLVal throwExp(Exception e){
-            JuliaCalls.jl_throw(JLType.SharpJLException.Create(CreateJuliaVal(JLType.SharpObject, e)));
-            return new JLVal(IntPtr.Zero);
-        }
+            RegisterSharpFunction("GetType", data => GetType(data));
+            RegisterSharpFunction("GetGenericType", data => GetGenericType(data++, data));
+            
+            RegisterSharpFunction("GetMethodByName", data => GetMethod(data++, data));
+            RegisterSharpFunction("GetMethodByNameAndTypes", data => GetMethod(data++, data++, ++data));
+            RegisterSharpFunction("GetGenericMethod", data => GetGenericMethod(data++, data));
+            RegisterSharpFunction("InvokeMethod", data => InvokeMethod(data++, data++, data));
 
-        internal static void destroy() => pinnedDelegates.Clear();
+            RegisterSharpFunction("GetConstructor", data => GetConstructor(data));
+            RegisterSharpFunction("GetConstructorByTypes", data => GetConstructorByTypes(data++, data));
+            RegisterSharpFunction("InvokeConstructor", data => InvokeConstructor(data++, data));
 
-        internal unsafe static void init()
-        {
-            SharpConstructor GetConstructor = (clazz) => {
-                try{
-                    Type t = ReadSharpVal<Type>(clazz);
-                    return CreateJuliaVal(JLType.SharpConstructor, new InvokableObject((args) => {
-                        return CreateJuliaVal(JLType.SharpObject, Activator.CreateInstance(t, args));
-                    }, t, "Constructor for Type:" + t));
-                }catch(Exception e){
-                    return throwExp(e);
-                }
-            };
+            RegisterSharpFunction("GetField", data => {
+                
+                return GetField(data++, data);
+            });
+            RegisterSharpFunction("GetFieldValue", data => GetFieldValue(data++, data));
+            RegisterSharpFunction("SetFieldValue", data => SetFieldValue(data++, data++, data));
 
-            SharpGenericConstructor GetGenericConstructor = (non_gen_constructor, generic_types) => {
-                try
-                {   
-                    Type t = ((Type) ReadSharpVal<InvokableObject>(non_gen_constructor).Parent).MakeGenericType(((long[])generic_types.UnboxInt64Array()).Select(x => ReadSharpVal<Type>(x)).ToArray());
-                    return CreateJuliaVal(JLType.SharpConstructor, new InvokableObject((args) => CreateJuliaVal(JLType.SharpObject, Activator.CreateInstance(t, args)), t, "Generic Constructor for Type:" + t));
-                }catch(Exception e){
-                    return throwExp(e);
-                }
-            };
-
-            SharpMethod GetMethod = (clazz, method) => {
-                try
-                {
-                    Type t = ReadSharpVal<Type>(clazz);
-                    var m = t.GetMethod(method, MethodBindingFlags);
-                    if (m == null)
-                        return CreateJuliaVal(JLType.SharpMethod, null);
-
-                    return CreateJuliaVal(JLType.SharpMethod, new InvokableObject((args) => {
-                        if (m.IsStatic)
-                            return CreateJuliaVal(JLType.SharpObject, m.Invoke(null, args));
-                        var owner = args[1];
-                        var tempArgs = new object[args.Length - 1];
-                        Array.Copy(args, 1, tempArgs, 0, args.Length - 1);
-                        return CreateJuliaVal(JLType.SharpObject, m.Invoke(owner, args));
-                    }, m, m.ToString()));
-                }catch (Exception e){
-                    return throwExp(e);
-                }
-            };
-
-            SharpGenericMethod GetGenericMethod = (method, generic_types) => {
-                try
-                {
-                    var m = ((MethodInfo)ReadSharpVal<InvokableObject>(method).Parent).MakeGenericMethod(((long[]) generic_types.UnboxInt64Array()).Select(x => ReadSharpVal<Type>(x)).ToArray());
-                    return CreateJuliaVal(JLType.SharpMethod, new InvokableObject((args) => {
-                        if (m.IsStatic)
-                            return CreateJuliaVal(JLType.SharpObject, m.Invoke(null, args));
-                        var owner = args[1];
-                        var tempArgs = new object[args.Length - 1];
-                        Array.Copy(args, 1, tempArgs, 0, args.Length - 1);
-                        return CreateJuliaVal(JLType.SharpObject, m.Invoke(owner, args));
-
-                    }, null, m.ToString()));
-                }catch(Exception e){
-                    return throwExp(e);
-                }
-            };
-
-            SharpClass GetClass = (clazz) => {
-                try
-                {
-                    return CreateJuliaVal(JLType.SharpType, FindType(clazz));
-                }catch(Exception e){
-                    return throwExp(e);
-                }
-            };
-
-            SharpField GetField = (clazz, field) => {
-                try
-                {
-                    var f = ReadSharpVal<Type>(clazz).GetField(field, MethodBindingFlags);
-                    return CreateJuliaVal(JLType.SharpField, new InvokableObject((args) => {
-                        if (f.IsStatic)
-                        {
-                            if (args.Length == 1)
-                            {
-                                f.SetValue(null, args[0]);
-                                return IntPtr.Zero;
-                            }
-                            else if (args.Length == 0)
-                            {
-                                return CreateJuliaVal(JLType.SharpObject, f.GetValue(null));
-                            }
-                        }
-                        else if (args.Length == 2)
-                        {
-                            f.SetValue(args[0], args[1]);
-                            return IntPtr.Zero;
-                        }
-                        else if (args.Length == 1)
-                        {
-                            return CreateJuliaVal(JLType.SharpObject, f.GetValue(args[0]));
-                        }
-                        return throwExp(new Exception("Unknown Sharp Field Invokation"));
-                    }, f, f.ToString()));
-                }
-                catch (Exception e)
-                {
-                    return throwExp(e);
-                }
-            };
-
-            SharpInvoke SharpInvoke = (val, parameters) => {
-                try
-                {
-                    return ReadSharpVal<InvokableObject>(val).invokable.Invoke((object[])parameters.UnboxObjectArray());
-                }
-                catch (Exception e)
-                {
-                    return throwExp(e);
-                }
-            };
-
-            SharpPINgc sharpPINgc = (o) => {
-                try
-                {
-                    return JLType.SharpStub.Create(ObjectCollector.PushCSharp(ReadSharpVal(o)));
-                }catch(Exception e)
-                {
-                    return throwExp(e);
-                }
-            };
-
-            SharpFreegc sharpFreegc = (o) => {
-                try{
-                    ObjectCollector.Ccollector.Remove(AddressHelper.GetInstance(o));
-                }catch(Exception e){
-                    throwExp(e);
-                }
-            };
-
-            SharpGetType sharpGetType = (o) => {
-                try
-                {
-                    if (o == 0)
-                        return 0;
-                    return WriteSharpVal(ReadSharpVal(o).GetType());
-                }
-                catch (Exception e)
-                {
-                    throwExp(e);
-                    return 0;
-                }
-            };
-
-            SharpToString sharpToString = (o) => {
-                try {
-                    return new JLVal(ReadSharpVal(o).ToString());
-                }
-                catch(Exception e)
-                { 
-                    return throwExp(e);
-                }
-            };
-
-            SharpGetHashCode sharpGetHashCode = (o) => {
-                try
-                {
-                    return ReadSharpVal(o).GetHashCode();
-                }
-                catch (Exception e)
-                {
-                    throwExp(e);
-                    return 0;
-                }
-            };
-
-            SharpEquals sharpEquals = (o1, o2) => {
-                try
-                {
-                    return ReadSharpVal(1) == ReadSharpVal(o2);
-                }catch(Exception e)
-                {
-                    throwExp(e);
-                    return false;
-                }
-            };
-
-            SharpBox sharpBox = (o) => {
-                try
-                {
-                    return WriteSharpVal(o.Value);
-                }
-                catch (Exception e)
-                {
-                    throwExp(e);
-                    return 0;
-                }
-            };
-
-            SharpUnBox sharpUnBox = (o) => {
-                try
-                {
-                    return new JLVal(ReadSharpVal(o));
-                }
-                catch (Exception e)
-                {
-                    return throwExp(e);
-                }
-            };
-         
-            Julia.GetFunction(JLModule.JuliaInterface, "initialize_library")
-                   .Invoke(GetPtr(GetClass),
-                           GetPtr(GetMethod),
-                           GetPtr(GetGenericMethod),
-                           GetPtr(GetConstructor),
-                           GetPtr(GetGenericConstructor),
-                           GetPtr(GetField),
-                           GetPtr(SharpInvoke),
-                           GetPtr(sharpPINgc),
-                           GetPtr(sharpFreegc),
-                           GetPtr(sharpGetType),
-                           GetPtr(sharpEquals),
-                           GetPtr(sharpToString),
-                           GetPtr(sharpGetHashCode),
-                           GetPtr(sharpBox),
-                           GetPtr(sharpUnBox));
-
-        }
-
-
-        internal class InvokableObject{
-            internal Invokable invokable;
-            internal object Parent;
-            internal string Message;
-
-            public InvokableObject(Invokable i, object parent, string message){
-                invokable = i;
-                Message = message;
-                Parent = parent;
+            RegisterSharpFunction("FreeSharp4JuliaReference", data => {
+                Console.WriteLine("Test!");
+                return FreeSharp4JuliaReference(*data);
             }
+            );
+            RegisterSharpFunction("GetObjectType", data =>GetObjectType(data));
+            RegisterSharpFunction("ToString", data => ToString(data));
+            RegisterSharpFunction("GetHashCode", data => GetHashCode(data));
+            RegisterSharpFunction("Box", data => BoxObject(*data));
+            RegisterSharpFunction("Unbox", data => UnBoxObject(*data));
+            RegisterSharpFunction("Equals", data => ObjectEquals(data++, data));
 
-            public override string ToString() => Message;
+            if (JLModule.Sharp.GetFunction("_init").Invoke().UnboxInt64() != 0){
+                throw new Exception("Unable to initialize library!");
+            }
         }
     }
 }

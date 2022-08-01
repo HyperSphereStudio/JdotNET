@@ -1,57 +1,48 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace JuliaInterface
+namespace JULIAdotNET
 {
     public static class AddressHelper
     {
-        private static object mutualobject;
-        private static objectReinterpreter reinterpreter;
+        private static object mutualObject;
+        private static ObjectReinterpreter reinterpreter;
 
-        static AddressHelper()
-        {
-            AddressHelper.mutualobject = new object();
-            AddressHelper.reinterpreter = new objectReinterpreter();
-            AddressHelper.reinterpreter.Asobject = new ObjectWrapper();
+        static AddressHelper(){
+            mutualObject = new object();
+            reinterpreter = new ObjectReinterpreter();
+            reinterpreter.AsObject = new ObjectWrapper();
         }
 
-        public static IntPtr GetAddress(object obj)
-        {
-            lock (AddressHelper.mutualobject)
+        public static IntPtr GetObjectAddress(object obj){
+            lock (mutualObject)
             {
-                AddressHelper.reinterpreter.Asobject.Object = obj;
-                IntPtr address = AddressHelper.reinterpreter.AsIntPtr.Value;
-                AddressHelper.reinterpreter.Asobject.Object = null;
+                reinterpreter.AsObject.Object = obj;
+                IntPtr address = reinterpreter.AsIntPtr.Value;
+                reinterpreter.AsObject.Object = null;
                 return address;
             }
         }
 
-        public static object GetInstance(IntPtr address) => GetInstance<object>(address);
-
-        public static T GetInstance<T>(IntPtr address)
-        {
-            lock (AddressHelper.mutualobject)
+        private static T GetObjectInstance<T>(IntPtr address){
+            lock (mutualObject)
             {
-                AddressHelper.reinterpreter.AsIntPtr.Value = address;
-                return (T)AddressHelper.reinterpreter.Asobject.Object;
+                reinterpreter.AsIntPtr.Value = address;
+                T obj = (T) reinterpreter.AsObject.Object;
+                reinterpreter.AsObject.Object = null;
+                return obj;
             }
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        private struct objectReinterpreter
-        {
-            [FieldOffset(0)] public ObjectWrapper Asobject;
+        private struct ObjectReinterpreter{
+            [FieldOffset(0)] public ObjectWrapper AsObject;
             [FieldOffset(0)] public IntPtrWrapper AsIntPtr;
         }
 
-        private class ObjectWrapper
-        {
-            public object Object;
-        }
+        private class ObjectWrapper{ public object Object; }
+        private class IntPtrWrapper{public IntPtr Value;}
 
-        private class IntPtrWrapper
-        {
-            public IntPtr Value;
-        }
     }
 }
