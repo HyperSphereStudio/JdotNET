@@ -193,6 +193,10 @@ module Reflection
 
 	_unboxsharpobject(x::AbstractSharpType) = Int32(x.ptr.ptr)
 
+	function unsafe_pointer_from_objectref(@nospecialize(x))
+        ccall(:jl_value_ptr, Ptr{Cvoid}, (Any,), x)
+    end
+
 	function _init()
 		@sharpfunction(GetType, name::AbstractString, NativeString(name))
 		@sharpfunction(GetGenericType, (type::SharpType, generic_types::Array{SharpType}), (NativeObject(type), NativeArray(generic_types)))
@@ -215,7 +219,7 @@ module Reflection
 		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
 		@sharpfunction(ToString, object::NativeObject, object) 
 		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 
-		@sharpfunction(Box, @nospecialize(object), NativeObject(pointer_from_objref(Any(object)))) 
+		@sharpfunction(Box, @nospecialize(x), NativeObject(unsafe_pointer_from_objectref(x))) 
 		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (NativeObject(obj1), NativeObject(obj2))) 
 
 		Core.eval(Native, quote using ..Reflection: FreeSharp4JuliaReference end)
