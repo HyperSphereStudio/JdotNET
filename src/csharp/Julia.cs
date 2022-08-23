@@ -153,12 +153,20 @@ namespace JULIAdotNET
             }
 
             if (sharpInit) {
-                JuliaCalls.jl_eval_string(
-                       @"using JULIAdotNET
-                       using JULIAdotNET.Sharp
-                       using JULIAdotNET.Sharp.Native
-                       using JULIAdotNET.Sharp.MemoryManagement
-                       using JULIAdotNET.Sharp.Reflection");
+                JuliaCalls.jl_eval_string(@"
+                                            try
+                                                @eval using JULIAdotNET
+                                            catch e
+                                                @eval begin
+                                                           using Pkg
+                                                           Pkg.add(url=""https://github.com/HyperSphereStudio/JULIAdotNET"")
+                                                           using JULIAdotNET
+                                                      end
+                                            end
+                                            using JULIAdotNET.Sharp
+                                            using JULIAdotNET.Sharp.Native
+                                            using JULIAdotNET.Sharp.MemoryManagement
+                                            using JULIAdotNET.Sharp.Reflection");
             }
 
             JLModule.init_mods();
