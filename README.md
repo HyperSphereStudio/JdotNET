@@ -124,7 +124,6 @@ Julia Garbage Collector Pinning:
    free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
 ```
 
-
 .NET Interface
 
 The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code). Drew ideas of syntax from https://github.com/azurefx/DotNET.jl
@@ -204,6 +203,27 @@ Boxing/Unboxing is converting a julia value from/to a sharp value from julia:
 ```julia
    boxed5 = sharpbox(5)   #Will return the sharp object of the long value "5"
    shouldBe5 = shapunbox(boxed5) #Will unbox the sharp object and return to native julia value
+```
+
+Exposing custom functions as native functions to julia
+```csharp
+   public unsafe delegate IntPtr JuliaNativeInterface(IntPtr* data);
+   
+   //Example from NativeSharp.cs that we want to expose to julia
+   public static JLVal /*Use this to manipulate julia objects to/from julia*/ GetMethod(NativeObject<Type> /*Use this to manipulate sharp objects to/from julia*/ t, NativeString /*Transfer strings*/ name) => GetMethod(t.Value, name.Value);
+   
+   //Register the method. You must increment the pointer for each argument left to right
+   NativeSharp.RegisterSharpFunction("GetMethodByName", data => GetMethod(data++, data));
+```
+From julia:
+```julia
+   //Generate the function and insert it into current module
+                  Function Name     Function Arguments Exposed to Julia       Convert to Native Objects
+   @sharpfunction(GetMethodByName, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
+   
+   //Using the function
+   someRandomType::SharpType
+   sharpMethod = GetMethodByName(someRandomType, "MyMethod")
 ```
 
 
