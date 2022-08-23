@@ -52,7 +52,7 @@ module Native
 
 		function NativeObject(ptr::Ptr{Cvoid})
 			o = new(ptr)
-			Base.finalizer(x -> FreeSharp4JuliaReference(x.ptr), o)
+			Base.finalizer(x -> FreeSharp4JuliaReference(ptr), o)
 			return o
 		end
 		

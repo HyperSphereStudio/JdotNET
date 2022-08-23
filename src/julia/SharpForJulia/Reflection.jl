@@ -209,8 +209,9 @@ module Reflection
 		@sharpfunction(GetField, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
 		@sharpfunction(GetFieldValue, (field::SharpField, owner::SharpObject), (NativeObject(field), NativeObject(owner)))
 		@sharpfunction(SetFieldValue, (field::NativeObject, owner::SharpObject, value::SharpObject), (NativeObject(field), NativeObject(owner), NativeObject(value)))
-		
-		@sharpfunction(FreeSharp4JuliaReference, object::SharpObject, NativeObject(object)) 
+
+		@sharpfunction(FreeSharp4JuliaReference, ptr::Ptr{Cvoid}, ptr) 
+
 		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
 		@sharpfunction(ToString, object::NativeObject, object) 
 		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 

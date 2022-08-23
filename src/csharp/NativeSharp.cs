@@ -223,9 +223,8 @@ namespace JULIAdotNET
             RegisterSharpFunction("Unbox", data => UnBoxObject(*data));
             RegisterSharpFunction("Equals", data => ObjectEquals(data++, data));
 
-            if (JLModule.Sharp.GetFunction("_init").Invoke().UnboxInt64() != 0){
+            if (JLModule.Sharp.GetFunction("_init").Invoke().UnboxInt64() != 0)
                 throw new Exception("Unable to initialize library!");
-            }
         }
     }
 }

@@ -236,10 +236,11 @@ namespace JULIAdotNET
         
     }
 
+
+    public class CSharp{
 #if NET
-    public class CSharp
-    {
         [UnmanagedCallersOnly]
+#endif
         public static int Init(IntPtr julia_bindir){
             var jo = new JuliaOptions();
             jo.JuliaDirectory = Marshal.PtrToStringUni(julia_bindir);
@@ -247,5 +248,4 @@ namespace JULIAdotNET
             return 0;
         }
     }
-#endif
 }
