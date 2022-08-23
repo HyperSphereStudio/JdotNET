@@ -209,7 +209,7 @@ module Reflection
 		@sharpfunction(GetConstructor, type::SharpType, NativeObject(type))
 		@sharpfunction(GetConstructorByTypes, (type::NativeObject, types::Array{SharpType}), (NativeObject(type), NativeArray(types)))
 		@sharpfunction(InvokeConstructor, (constructor::SharpConstructor, args::Array), NativeArray(args))
-		
+
 		@sharpfunction(GetField, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
 		@sharpfunction(GetFieldValue, (field::SharpField, owner::SharpObject), (NativeObject(field), NativeObject(owner)))
 		@sharpfunction(SetFieldValue, (field::NativeObject, owner::SharpObject, value::SharpObject), (NativeObject(field), NativeObject(owner), NativeObject(value)))
@@ -219,7 +219,7 @@ module Reflection
 		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
 		@sharpfunction(ToString, object::NativeObject, object) 
 		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 
-		@sharpfunction(Box, @nospecialize(x), NativeObject(unsafe_pointer_from_objectref(x))) 
+		@sharpfunction(Box, @nospecialize(object), NativeObject(unsafe_pointer_from_objectref(object))) 
 		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (NativeObject(obj1), NativeObject(obj2))) 
 
 		Core.eval(Native, quote using ..Reflection: FreeSharp4JuliaReference end)
