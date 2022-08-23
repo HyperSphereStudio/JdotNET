@@ -1,31 +1,25 @@
-Julia.NET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
+# JULIAdotNET
 
-Launching Julia from C#
+JuliadotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
+
+
+##Julia Interface from C#
+
+### Launching Julia
 ```csharp
 JuliaOptions options = new JuliaOptions();
 options.ThreadCount = 4;
 Julia.Init(options);
 ```
 
-Launching C# from Julia
-```julia
-using JULIAdotNET
-using JULIAdotNET.JuliaInterface
-
-handle = Init() #Keep handle alive as long as you want .NET to be alive
-
-sharpList = T"System.Collections.Generic.List`1".new[T"System.Int64"]()
-```
-
-
-Evaluation:
+### Evaluation:
 ```csharp
 Julia.Init();
 int v = (int) Julia.Eval("2 * 2");
 Julia.Exit(0); //Even if your program terminates after you should call this. It runs the finalizers and stuff 
 ```
 
-Structs:
+### Structs:
 ```csharp
 
    #You have two choices, allocate a struct or create a struct.
@@ -35,7 +29,7 @@ Structs:
    var myCreatedStuct = JLType.JLRef.Create(3);   //Will call constructor
 ```
 
-Functions:
+### Functions:
 ```csharp
   JLFun fun = Julia.Eval("t(x::Int) = Int32(x * 2)");
   JLSvec ParameterTypes = fun.ParameterTypes;
@@ -45,7 +39,7 @@ Functions:
   JLVal resultWillBe4 = fun.Invoke(2);
 ```
 
-Values:
+### Values:
 ```csharp
    //Auto alloc to Julia
    var val = new JLVal(3);
@@ -57,7 +51,7 @@ Values:
    object newVal2 = val.Value;
 ```
 
-Arrays:
+### Arrays:
 ```csharp
    JLArray arr = Julia.Eval("[2, 3, 4]")
    
@@ -78,7 +72,7 @@ Arrays:
    JLType elementType = arr.ElType;
 ```
 
-Exception Handling:
+### Exception Handling:
 ```csharp
   JLFun fun = Julia.Eval("t(x) = sqrt(x)");
   fun.Invoke(5).Println();   //Exception Checking
@@ -87,7 +81,7 @@ Exception Handling:
 ```
 
 
-Garbage Collection:
+### Garbage Collection:
 You are (at the current moment of this project) responsible for ensuring object safety on both .NET and Julia. When you make calls to either language, the GC could activate and invalidate the reference you hold in the other language unless you pin it!
 
 There are two forms of Garbage Collector Pinning: Static & Stack.
@@ -95,7 +89,7 @@ There are two forms of Garbage Collector Pinning: Static & Stack.
 Static pinning is meant for objects with a long life span (could exist forever).
 Stack pinning is meant for objects with a short life span.
 
-CSharp Static Garbage Collector Pinning:
+### CSharp Static Garbage Collector Pinning:
 ```csharp
   JLArray myArr = new JLArray(JLType.Int64, 5);  //Allocate Int64 array of length 5
   
@@ -106,7 +100,7 @@ CSharp Static Garbage Collector Pinning:
   handle.Free();   //Optional, handle destructor will auto call it. This is in case you want it freed earlier
 ```
 
-CSharp Stack Garbage Collector Pinning:
+### CSharp Stack Garbage Collector Pinning:
 ```csharp
     JLVal v = Julia.Eval("2 * 2");
     JLVal v2 = Julia.Eval("Hi");
@@ -117,16 +111,19 @@ CSharp Stack Garbage Collector Pinning:
     Julia.GC_POP();    
 ```
 
-Julia Garbage Collector Pinning:
-```julia
-   handle = pin(sharpbox(5))
-   #Stuff calling Sharp Functions
-   free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
-```
-
-.NET Interface
+## C# from Julia
 
 The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code). Drew ideas of syntax from https://github.com/azurefx/DotNET.jl
+
+### Launching C# from Julia
+```julia
+using JULIAdotNET
+using JULIAdotNET.JuliaInterface
+
+handle = Init() #Keep handle alive as long as you want .NET to be alive
+
+sharpList = T"System.Collections.Generic.List`1".new[T"System.Int64"]()
+```
 
 Lets say we have the following C# classes:
 ```csharp
@@ -148,8 +145,8 @@ namespace Test{
 }
 ```
 
+### Accessing Sharp Types From Julia:
 The Sharp Type object allows one to access .NET class fields, methods and constructors from julia
-Accessing Sharp Types From Julia:
 ```julia
    myClass = T"Test.ReflectionTestClass"   #<= Perform Assembly Search and Return the Sharp Type
    
@@ -160,7 +157,6 @@ Accessing Sharp Types From Julia:
    myClass4 = R"Test.ReflectionTestClass"   #Remove from internal array
 ```
 
-
 The using statement From Julia enables a user to shorten the length of a type name required
 ```julia
    myClass1 = T"System.Int64"   #<= Will Work But It is long to type
@@ -169,7 +165,7 @@ The using statement From Julia enables a user to shorten the length of a type na
    myClass3 = T"Int64"   #<= Will Work
 ```
 
-Field Invokation:
+### Field Invokation:
 ```julia
    @netusing Test
    shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
@@ -177,7 +173,7 @@ Field Invokation:
    T"ReflectionTestClass".TestStateField[] = 3 #To Set a Field. An error will occur if you dont put [].
 ```
 
-Method Invokation:
+### Method Invokation:
 ```julia
    @netusing Test
    @netusing System
@@ -186,7 +182,7 @@ Method Invokation:
    shouldBe3 = T"ReflectionTestClass".StaticGenericMethod[T"Int64"]() "To call a generic method, put the generic types in []
 ```
 
-Constructor Invokation:
+### Constructor Invokation:
 ```julia
    @netusing Test
    @netusing System
@@ -199,13 +195,20 @@ Constructor Invokation:
    
 ```
 
-Boxing/Unboxing is converting a julia value from/to a sharp value from julia:
+### Boxing/Unboxing is converting a julia value from/to a sharp value from julia:
 ```julia
    boxed5 = sharpbox(5)   #Will return the sharp object of the long value "5"
    shouldBe5 = shapunbox(boxed5) #Will unbox the sharp object and return to native julia value
 ```
 
-Exposing custom functions as native functions to julia
+### Julia Garbage Collector Pinning:
+```julia
+   handle = pin(sharpbox(5))
+   #Stuff calling Sharp Functions
+   free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
+```
+
+## Exposing custom functions as native functions to julia
 ```csharp
    public unsafe delegate IntPtr JuliaNativeInterface(IntPtr* data);
    
@@ -215,7 +218,7 @@ Exposing custom functions as native functions to julia
    //Register the method. You must increment the pointer for each argument left to right
    NativeSharp.RegisterSharpFunction("GetMethodByName", data => GetMethod(data++, data));
 ```
-From julia:
+### From julia:
 ```julia
    //Generate the function and insert it into current module
                   Function Name     Function Arguments Exposed to Julia       Convert to Native Objects
