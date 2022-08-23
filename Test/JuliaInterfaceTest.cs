@@ -1,4 +1,4 @@
-using JuliaInterface;
+using JULIAdotNET;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -42,9 +42,7 @@ namespace TestJuliaInterface
         {
             JLArray fun = Julia.Eval("[2, 3, 4]");
             var pinHandle = fun.Pin();
-            Assert.AreEqual(1, ObjectCollector.JLObjLen, "Object not pinned!");
             pinHandle.Free();
-            Assert.AreEqual(0, ObjectCollector.JLObjLen, "Object not freed!");
         }
 
         [Test]
@@ -115,7 +113,7 @@ namespace TestJuliaInterface
         [Test]
         public void BoxingTest(){
             Assert.Multiple(() => {
-                Assert.IsTrue((long)Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
+                Assert.IsTrue((ulong)Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
             });
             //Assert.AreEqual(Julia.Eval("sharpunbox(T""ReflectionTestClass"".TestStaticField)"), 5, "Unboxing Failed")
         }
@@ -143,9 +141,7 @@ namespace TestJuliaInterface
             if (!Julia.Eval("@isdefined itemG").UnboxBool())
                 Construction();
             Julia.Eval("handle = pin(itemG)");
-            Assert.AreEqual(1, ObjectCollector.CSharpObjLen, "Unable to pin object");
             Julia.Eval("free(handle)");
-            Assert.AreEqual(0, ObjectCollector.CSharpObjLen, "Unable to free object");
         }
 
         [Test]

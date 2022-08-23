@@ -215,7 +215,7 @@ module Reflection
 		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
 		@sharpfunction(ToString, object::NativeObject, object) 
 		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 
-		@sharpfunction(Box, object::SharpObject, NativeObject(object)) 
+		@sharpfunction(Box, @nospecialize(object), NativeObject(pointer_from_objref(Any(object)))) 
 		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (NativeObject(obj1), NativeObject(obj2))) 
 
 		Core.eval(Native, quote using ..Reflection: FreeSharp4JuliaReference end)
