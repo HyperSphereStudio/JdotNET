@@ -12,14 +12,14 @@ options.ThreadCount = 4;
 Julia.Init(options);
 ```
 
-### Evaluation:
+### Evaluation
 ```csharp
 Julia.Init();
 int v = (int) Julia.Eval("2 * 2");
 Julia.Exit(0); //Even if your program terminates after you should call this. It runs the finalizers and stuff 
 ```
 
-### Structs:
+### Structs
 ```csharp
 
    #You have two choices, allocate a struct or create a struct.
@@ -29,7 +29,7 @@ Julia.Exit(0); //Even if your program terminates after you should call this. It 
    var myCreatedStuct = JLType.JLRef.Create(3);   //Will call constructor
 ```
 
-### Functions:
+### Functions
 ```csharp
   JLFun fun = Julia.Eval("t(x::Int) = Int32(x * 2)");
   JLSvec ParameterTypes = fun.ParameterTypes;
@@ -39,7 +39,7 @@ Julia.Exit(0); //Even if your program terminates after you should call this. It 
   JLVal resultWillBe4 = fun.Invoke(2);
 ```
 
-### Values:
+### Values
 ```csharp
    //Auto alloc to Julia
    var val = new JLVal(3);
@@ -51,7 +51,7 @@ Julia.Exit(0); //Even if your program terminates after you should call this. It 
    object newVal2 = val.Value;
 ```
 
-### Arrays:
+### Arrays
 ```csharp
    JLArray arr = Julia.Eval("[2, 3, 4]")
    
@@ -72,7 +72,7 @@ Julia.Exit(0); //Even if your program terminates after you should call this. It 
    JLType elementType = arr.ElType;
 ```
 
-### Exception Handling:
+### Exception Handling
 ```csharp
   JLFun fun = Julia.Eval("t(x) = sqrt(x)");
   fun.Invoke(5).Println();   //Exception Checking
@@ -81,7 +81,7 @@ Julia.Exit(0); //Even if your program terminates after you should call this. It 
 ```
 
 
-### Garbage Collection:
+### Garbage Collection
 You are (at the current moment of this project) responsible for ensuring object safety on both .NET and Julia. When you make calls to either language, the GC could activate and invalidate the reference you hold in the other language unless you pin it!
 
 There are two forms of Garbage Collector Pinning: Static & Stack.
@@ -89,7 +89,7 @@ There are two forms of Garbage Collector Pinning: Static & Stack.
 Static pinning is meant for objects with a long life span (could exist forever).
 Stack pinning is meant for objects with a short life span.
 
-### CSharp Static Garbage Collector Pinning:
+### CSharp Static Garbage Collector Pinning
 ```csharp
   JLArray myArr = new JLArray(JLType.Int64, 5);  //Allocate Int64 array of length 5
   
@@ -100,7 +100,7 @@ Stack pinning is meant for objects with a short life span.
   handle.Free();   //Optional, handle destructor will auto call it. This is in case you want it freed earlier
 ```
 
-### CSharp Stack Garbage Collector Pinning:
+### CSharp Stack Garbage Collector Pinning
 ```csharp
     JLVal v = Julia.Eval("2 * 2");
     JLVal v2 = Julia.Eval("Hi");
@@ -145,7 +145,7 @@ namespace Test{
 }
 ```
 
-### Accessing Sharp Types From Julia:
+### Accessing Sharp Types From Julia
 The Sharp Type object allows one to access .NET class fields, methods and constructors from julia
 ```julia
    myClass = T"Test.ReflectionTestClass"   #<= Perform Assembly Search and Return the Sharp Type
@@ -165,7 +165,7 @@ The using statement From Julia enables a user to shorten the length of a type na
    myClass3 = T"Int64"   #<= Will Work
 ```
 
-### Field Invokation:
+### Field Invokation
 ```julia
    @netusing Test
    shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
@@ -173,7 +173,7 @@ The using statement From Julia enables a user to shorten the length of a type na
    T"ReflectionTestClass".TestStateField[] = 3 #To Set a Field. An error will occur if you dont put [].
 ```
 
-### Method Invokation:
+### Method Invokation
 ```julia
    @netusing Test
    @netusing System
@@ -182,7 +182,7 @@ The using statement From Julia enables a user to shorten the length of a type na
    shouldBe3 = T"ReflectionTestClass".StaticGenericMethod[T"Int64"]() "To call a generic method, put the generic types in []
 ```
 
-### Constructor Invokation:
+### Constructor Invokation
 ```julia
    @netusing Test
    @netusing System
@@ -195,13 +195,14 @@ The using statement From Julia enables a user to shorten the length of a type na
    
 ```
 
-### Boxing/Unboxing is converting a julia value from/to a sharp value from julia:
+### Boxing/Unboxing
+Boxing/Unboxing is converting a julia value from/to a sharp value from julia
 ```julia
    boxed5 = sharpbox(5)   #Will return the sharp object of the long value "5"
    shouldBe5 = shapunbox(boxed5) #Will unbox the sharp object and return to native julia value
 ```
 
-### Julia Garbage Collector Pinning:
+### Julia Garbage Collector Pinning
 ```julia
    handle = pin(sharpbox(5))
    #Stuff calling Sharp Functions
@@ -209,6 +210,7 @@ The using statement From Julia enables a user to shorten the length of a type na
 ```
 
 ## Exposing custom functions as native functions to julia
+### From C#
 ```csharp
    public unsafe delegate IntPtr JuliaNativeInterface(IntPtr* data);
    
@@ -218,7 +220,7 @@ The using statement From Julia enables a user to shorten the length of a type na
    //Register the method. You must increment the pointer for each argument left to right
    NativeSharp.RegisterSharpFunction("GetMethodByName", data => GetMethod(data++, data));
 ```
-### From julia:
+### From julia
 ```julia
    //Generate the function and insert it into current module
                   Function Name     Function Arguments Exposed to Julia       Convert to Native Objects
