@@ -219,7 +219,7 @@ module Reflection
 		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
 		@sharpfunction(ToString, object::NativeObject, object) 
 		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 
-		@sharpfunction(Box, @nospecialize(object), NativeObject(unsafe_pointer_from_objectref(object))) 
+		@sharpfunction(Box, @nospecialize(x), NativeObject(ismutabletype(typeof(x)) ? pointer_from_objref(x) : Base.unsafe_convert(Ptr{Cvoid}, Ref(x)))) 
 		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (NativeObject(obj1), NativeObject(obj2))) 
 
 		Core.eval(Native, quote using ..Reflection: FreeSharp4JuliaReference end)

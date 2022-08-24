@@ -25,35 +25,33 @@ namespace JULIAdotNET
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct NativeArray<T>{
         public IntPtr len;
-        public NativeObject<T>* data;
+        public void* data;
 
-        public unsafe NativeArray(IntPtr len, NativeObject<T>* data){
+        public unsafe NativeArray(IntPtr len, void* data){
             this.len = len;
             this.data = data;
         }
 
         public static explicit operator T[](NativeArray<T> na) => na.Value;
         public static explicit operator object[](NativeArray<T> na) => na.OValue;
-        public static unsafe implicit operator NativeArray<T>(IntPtr* ptr) => new NativeArray<T>(*ptr++, (NativeObject<T>*) ptr);
+        public static unsafe implicit operator NativeArray<T>(IntPtr* ptr) => new NativeArray<T>(*ptr++, (void*) ptr);
 
         public object[] OValue {
             get {
-                var l = len.ToInt32();
-                var t = new object[l];
-                for (int i = 0; i < l; ++i)
-                    t[i] = (T)data[i];
-                return t;
+                var span = new Span<T>(data, len.ToInt32());
+                if (typeof(T).IsByRef)
+                    return (object[]) (Array) span.ToArray();
+                else{
+                    var array = new object[span.Length];
+                    for (int i = 0; i < span.Length; ++i)
+                        array[i] = span[i];
+                    return array;
+                }
             }
         }
 
         public T[] Value {
-            get {
-                var l = len.ToInt32();
-                var t = new T[l];
-                for (int i = 0; i < l; ++i)
-                    t[i] = (T) data[i];
-                return t;
-            }
+            get => new Span<T>(data, len.ToInt32()).ToArray();
         }
     }
 

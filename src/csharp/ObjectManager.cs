@@ -6,8 +6,8 @@ namespace JULIAdotNET
 
     public class ObjectManager{
         private static object sharp_mem_lock = new object();
-        private static List<object> sharp_references = new();
-        private static List<int> sharp_freed_references = new();
+        private static List<object> sharp_references = new List<object>();
+        private static List<int> sharp_freed_references = new List<int>();
         private static JLFun _CreateJulia4SharpReferenceF, _FreeJulia4SharpReferenceF, _GetJulia4SharpValueF;
 
         internal static void init(){
