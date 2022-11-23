@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "r/wWANhNn5U2uzGVUL3zMzAyo9PC9KSToCjm5M+NIlumITuyiMm049/PgmI+ONH0eAvSQx1aYNgh76S/HmSwGA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliaInterface4\\Sandbox\\Sandbox.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.17\\microsoft.netcore.app.host.win-x64.5.0.17.nupkg.sha512"
+  ],
+  "logs": []
+}

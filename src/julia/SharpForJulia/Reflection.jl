@@ -69,7 +69,7 @@ module Reflection
 		
 		Base.getindex(sm::SharpMethod) = sm
 		Base.getindex(sm::SharpMethod, generic_types::SharpType...) = GetGenericMethod(sm, collect(generic_types))
-		(sm::SharpMethod)(owner, parameters...) = InvokeMethod(sm, owner, NativeArray(parameters))
+		(sm::SharpMethod)(owner, parameters...) = InvokeMethod(sm, owner, createnativeobject(collect(parameters)))
 	end
 
 	"Get the Sharp Type"
@@ -191,36 +191,30 @@ module Reflection
 		return pop!(TypeMap, string(type))
 	end
 
-	_unboxsharpobject(x::AbstractSharpType) = Int32(x.ptr.ptr)
-
-	function unsafe_pointer_from_objectref(@nospecialize(x))
-        ccall(:jl_value_ptr, Ptr{Cvoid}, (Any,), x)
-    end
-
 	function _init()
-		@sharpfunction(GetType, name::AbstractString, NativeString(name))
-		@sharpfunction(GetGenericType, (type::SharpType, generic_types::Array{SharpType}), (NativeObject(type), NativeArray(generic_types)))
+		@sharpfunction(GetType, name::AbstractString, name)
+		@sharpfunction(GetGenericType, (type::SharpType, generic_types::Array{SharpType}), (type, generic_types))
 		
-		@sharpfunction(GetMethodByName, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
-		@sharpfunction(GetMethodByNameAndTypes, (type::SharpType, name::AbstractString, types::Array), (NativeObject(type), NativeString(name), NativeArray(types)))
-		@sharpfunction(GetGenericMethod, (method::SharpMethod, generic_types::Array{SharpType}), (NativeObject(method), NativeArray(generic_types)))
-		@sharpfunction(InvokeMethod, (method::SharpMethod, owner::SharpObject, args::Array), (NativeObject(method), NativeObject(owner), NativeArray(args)))
+		@sharpfunction(GetMethodByName, (type::SharpType, name::AbstractString), (type, name))
+		@sharpfunction(GetMethodByNameAndTypes, (type::SharpType, name::AbstractString, types::Array), (type, name, types))
+		@sharpfunction(GetGenericMethod, (method::SharpMethod, generic_types::Array{SharpType}), (method, generic_types))
+		@sharpfunction(InvokeMethod, (method::SharpMethod, owner::SharpObject, args::Array), (method, owner, args))
 		
-		@sharpfunction(GetConstructor, type::SharpType, NativeObject(type))
-		@sharpfunction(GetConstructorByTypes, (type::NativeObject, types::Array{SharpType}), (NativeObject(type), NativeArray(types)))
-		@sharpfunction(InvokeConstructor, (constructor::SharpConstructor, args::Array), NativeArray(args))
+		@sharpfunction(GetConstructor, type::SharpType, type)
+		@sharpfunction(GetConstructorByTypes, (type::NativeObject, types::Array{SharpType}), (type), types)
+		@sharpfunction(InvokeConstructor, (constructor::SharpConstructor, args::Array), args)
 
-		@sharpfunction(GetField, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
-		@sharpfunction(GetFieldValue, (field::SharpField, owner::SharpObject), (NativeObject(field), NativeObject(owner)))
-		@sharpfunction(SetFieldValue, (field::NativeObject, owner::SharpObject, value::SharpObject), (NativeObject(field), NativeObject(owner), NativeObject(value)))
+		@sharpfunction(GetField, (type::SharpType, name::AbstractString), (type, name))
+		@sharpfunction(GetFieldValue, (field::SharpField, owner::SharpObject), (field, owner))
+		@sharpfunction(SetFieldValue, (field::NativeObject, owner::SharpObject, value::SharpObject), (field, owner, value))
 
 		@sharpfunction(FreeSharp4JuliaReference, ptr::Ptr{Cvoid}, ptr) 
 
-		@sharpfunction(GetObjectType, object::SharpObject, NativeObject(object)) 
+		@sharpfunction(GetObjectType, object::SharpObject, object) 
 		@sharpfunction(ToString, object::NativeObject, object) 
-		@sharpfunction(GetHashCode, object::SharpObject, NativeObject(object)) 
-		@sharpfunction(Box, @nospecialize(x), NativeObject(ismutabletype(typeof(x)) ? pointer_from_objref(x) : Base.unsafe_convert(Ptr{Cvoid}, Ref(x)))) 
-		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (NativeObject(obj1), NativeObject(obj2))) 
+		@sharpfunction(GetHashCode, object::SharpObject, object)
+		@sharpfunction(Box, @nospecialize(x), x) 
+		@sharpfunction(Unbox, (obj1::SharpObject, obj2::SharpObject), (obj1, obj2)) 
 
 		Core.eval(Native, quote using ..Reflection: FreeSharp4JuliaReference end)
 	end

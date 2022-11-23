@@ -50,7 +50,7 @@ namespace JULIAdotNET
     public class SharpOutputStream : StreamReader{
         private static MethodInfo read_method = typeof(SharpOutputStream).GetMethod("ReadLine");
         private static MethodInfo close_method = typeof(SharpOutputStream).GetMethod("CloseStream");
-        private object write_lock;
+        private object write_lock = new object();
         private bool wasClosed = false;
         private JuliaReference stream;
 

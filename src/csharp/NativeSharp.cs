@@ -6,19 +6,27 @@ using System.Reflection;
 
 namespace JULIAdotNET
 {
+    [Flags]
+    public enum Allocation : byte{
+        JuliaOwned = 1,
+        SharpOwned = 2,
+        Heap = 4,
+        Malloc = 8
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct NativeString{
         IntPtr len;
         IntPtr data;
+        readonly Allocation allocation;
 
-        public NativeString(IntPtr len, IntPtr data){
+        public NativeString(IntPtr len, IntPtr data, Allocation alloca){
             this.len = len;
             this.data = data;
+            this.allocation = alloca;
         }
 
         public static explicit operator string(NativeString ns) => ns.Value;
-        public static unsafe implicit operator NativeString(IntPtr* ptr) => new NativeString(*ptr++, *ptr);
-
         public string Value => Marshal.PtrToStringUni(data, len.ToInt32());
     }
 
@@ -26,6 +34,7 @@ namespace JULIAdotNET
     public unsafe struct NativeArray<T>{
         public IntPtr len;
         public void* data;
+        public bool IsJuliaType;
 
         public unsafe NativeArray(IntPtr len, void* data){
             this.len = len;
@@ -57,9 +66,9 @@ namespace JULIAdotNET
 
     public struct NativeObject<T>{
         public IntPtr data;
+        public bool IsJuliaType;
 
-        public NativeObject(T o) => data = new IntPtr(ObjectManager._CreateSharp4JuliaReference(o));
-
+        public NativeObject(T o) => data = new IntPtr(ObjectManager._MallocSharpObject(o));
         public NativeObject(IntPtr data) => this.data = data;
 
         public static explicit operator T(NativeObject<T> no) => no.Value;
@@ -110,7 +119,7 @@ namespace JULIAdotNET
         public static JLVal InvokeMethod(MethodInfo m, object owner, params object[] args) => BoxObject(m.Invoke(owner, args));
         public static JLVal InvokeMethod(NativeObject<MethodInfo> m, NativeObject<object> owner, NativeArray<object> args) => InvokeMethod(m.Value, owner.Value, args.OValue);
 
-        public static JLVal BoxObject(object o) => CreateJuliaVal(JLType.SharpObject, o);
+        public static JLVal BoxObject(object o) => ObjectManager._CreateNativeJuliaObject.Invoke(new NativeObject<object>(o).data);
         public static JLVal BoxObject(JLVal v) => BoxObject(v.Value);
         public static JLVal UnBoxObject(object o) => new JLVal(o);
         public static JLVal UnBoxObject(NativeObject<object> o) => UnBoxObject(o.Value);
@@ -190,6 +199,7 @@ namespace JULIAdotNET
         internal unsafe static void init() {
             RegisterSharpFunctionHandle = JLModule.Sharp_Native.GetFunction("RegisterSharpFunction");
 
+            RegisterSharpFunction("_CreateSafeSharpJuliaReference", data => new NativeObject<ObjectManager.JuliaReference>(ObjectManager.CreateSafeJuliaReference(new JLVal((IntPtr) data))).data);
             RegisterSharpFunction("GetType", data => GetType(data));
             RegisterSharpFunction("GetGenericType", data => GetGenericType(data++, data));
             
@@ -203,18 +213,16 @@ namespace JULIAdotNET
             RegisterSharpFunction("InvokeConstructor", data => InvokeConstructor(data++, data));
 
             RegisterSharpFunction("GetField", data => {
-                
-                return GetField(data++, data);
+                Console.WriteLine();
+                var f = GetField(data++, data); ;
+                return f;
+               // return GetField(data++, data);
             });
             RegisterSharpFunction("GetFieldValue", data => GetFieldValue(data++, data));
             RegisterSharpFunction("SetFieldValue", data => SetFieldValue(data++, data++, data));
 
-            RegisterSharpFunction("FreeSharp4JuliaReference", data => {
-                Console.WriteLine("Test!");
-                return FreeSharp4JuliaReference(*data);
-            }
-            );
-            RegisterSharpFunction("GetObjectType", data =>GetObjectType(data));
+            RegisterSharpFunction("FreeSharp4JuliaReference", data => FreeSharp4JuliaReference(*data));
+            RegisterSharpFunction("GetObjectType", data => GetObjectType(data));
             RegisterSharpFunction("ToString", data => ToString(data));
             RegisterSharpFunction("GetHashCode", data => GetHashCode(data));
             RegisterSharpFunction("Box", data => BoxObject(*data));

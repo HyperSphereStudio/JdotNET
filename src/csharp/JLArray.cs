@@ -132,7 +132,6 @@ namespace JULIAdotNET
         public override string ToString() => new JLVal(this).ToString();
         public override bool Equals(object o) => new JLVal(this).Equals(o);
         public override int GetHashCode() => new JLVal(this).GetHashCode();
-        public JuliaReference Pin() => new JLVal(this).Reference();
         public void Println() => new JLVal(this).Println();
         public void Print() => new JLVal(this).Print();
         public long Length { get => new JLVal(this).Length; }

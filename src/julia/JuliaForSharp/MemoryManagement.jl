@@ -1,9 +1,11 @@
 module MemoryManagement
+    using .Native
+    export sharpref
     const jl_mem_lock = ReentrantLock()
     const jl_freed_references = Array{Int32}(undef, 0)
     const jl_references = Array{Any}(undef, 0)
     
-    function _CreateJuliaForSharpReference(v::Any)
+    function _MallocJuliaObject(v::Any)
         lock(jl_mem_lock)
         if length(jl_freed_references) != 0
             ref = pop!(jl_freed_references)
@@ -16,7 +18,7 @@ module MemoryManagement
         unlock(jl_mem_lock)
     end
 
-    function _FreeJuliaForSharpReference(ptr::Int32)
+    function _FreeJuliaObject(ptr::Int32)
         lock(jl_mem_lock)
 
         jl_references[ptr] = nothing
@@ -30,9 +32,12 @@ module MemoryManagement
         unlock(jl_mem_lock)
     end
 
-    _GetJuliaForSharpValue(ptr::Int32) = (lock(jl_mem_lock); jl_references[ptr]; unlock(jl_mem_lock))
+    _DereferenceJuliaObject(ptr::Int32) = (lock(jl_mem_lock); jl_references[ptr]; unlock(jl_mem_lock))
 
     function _init()
-        
+        @sharpfunction(_MallocSharpObject, (v::NativeObject), v)
+        @sharpfunction(_FreeSharpObject, (v::Int32), NativeObject(Ptr{Cvoid}(v)))
+        @sharpfunction(_DereferenceSharpObject, (v::Int32), NativeObject(Ptr{Cvoid}(v)))
+        @sharpfunction(_CreateSafeSharpJuliaReference, (x::Any), NativeObject(Native.unsaferef(x)))
     end
 end

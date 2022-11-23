@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 //Written by Johnathan Bizzano
 namespace JULIAdotNET
@@ -14,7 +10,5 @@ namespace JULIAdotNET
 
         public override string ToString() => (string) JLFun.SprintF.Invoke(JLFun.ShowErrorF, excep);
         public override string Message => ToString();
-
-
     }
 }

@@ -48,11 +48,9 @@ namespace JULIAdotNET
         public static JLType SharpJLException;
 
         private static Dictionary<Type, JLType> type2jltype;
-
         private static Dictionary<JLType, Type> jltype2type;
 
-        private static Dictionary<JLType, Type> makedict()
-        {
+        private static Dictionary<JLType, Type> makedict(){
             var t = new Dictionary<JLType, Type>(type2jltype.Count);
             foreach (var e in type2jltype)
                 t[e.Value] = e.Key;

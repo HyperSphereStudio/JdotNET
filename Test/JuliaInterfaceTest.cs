@@ -6,10 +6,16 @@ using System.Threading.Tasks;
 
 namespace TestJuliaInterface
 {
-    public class Initialization{
+    public class JuliadotNET{
 
         [OneTimeSetUp]
-        public void Setup() => Julia.Init();
+        public void Setup(){
+            Julia.Init();
+            Julia.Eval(@"@netusing System
+                         @netusing TestJuliaInterface");
+        }
+
+        [OneTimeTearDown] public void Destroy() => Julia.Exit(0);
 
         [Test]
         public void JuliaTypes() => Assert.AreNotEqual(IntPtr.Zero, (IntPtr)JLType.JLBool, "Julia Type Import Failure");
@@ -19,12 +25,6 @@ namespace TestJuliaInterface
 
         [Test]
         public void JuliaEval() => Assert.AreEqual(4.0, (double)Julia.Eval("2.0 * 2.0"), "Julia Evaluation Failure");
-    }
-
-    public class JuliaTest
-    {
-        [OneTimeSetUp]
-        public void Setup() => Julia.Init();
 
 
         [Test]
@@ -45,6 +45,7 @@ namespace TestJuliaInterface
             pinHandle.Free();
         }
 
+
         [Test]
         public void Array()
         {
@@ -58,26 +59,12 @@ namespace TestJuliaInterface
             });
         }
 
-    }
+        [Test]
+        public void SharpType() => Assert.IsFalse(((JLVal)JLType.SharpType).IsNull, "Julia Type Import Failure");
 
-
-    [SingleThreaded]
-    public class SharpTest
-    {
-        [OneTimeSetUp]
-        public void Setup()
+        [Test]
+        public void Construction()
         {
-            Julia.Init();
-            Julia.Eval(@"@netusing System
-                         @netusing TestJuliaInterface");
-        }
-
-        [Test]
-        public void SharpType() => Assert.IsFalse(((JLVal) JLType.SharpType).IsNull, "Julia Type Import Failure");
-
-
-        [Test]
-        public void Construction(){
             Assert.Multiple(() => {
                 Assert.IsFalse(Julia.Eval(@"
                         item = T""ReflectionTestClass"".new[](3)
@@ -92,7 +79,8 @@ namespace TestJuliaInterface
         }
 
         [Test]
-        public void GetField(){
+        public void GetField()
+        {
             if (!Julia.Eval("@isdefined itemG").UnboxBool())
                 Construction();
             Assert.Multiple(() => {
@@ -111,7 +99,8 @@ namespace TestJuliaInterface
         }
 
         [Test]
-        public void BoxingTest(){
+        public void BoxingTest()
+        {
             Assert.Multiple(() => {
                 Assert.IsTrue((ulong)Julia.Eval("sharpbox(5)").Value == 5, "Boxing Failed");
             });
@@ -127,12 +116,12 @@ namespace TestJuliaInterface
         }
 
         [Test]
-        public void TypeMacros(){
+        public void TypeMacros() {
             Julia.Eval(@"P""System.Int64""");
-            Assert.AreEqual(1, Julia.Eval("length(Main.JuliaInterface.TypeMap)").UnboxInt64(), "Did not push to type map");
+            Assert.AreEqual(1, Julia.Eval("length(Reflection.TypeMap)").UnboxInt64(), "Did not push to type map");
             Julia.Eval(@"G""System.Int64""");
             Julia.Eval(@"R""System.Int64""");
-            Assert.AreEqual(0, Julia.Eval("length(Main.JuliaInterface.TypeMap)").UnboxInt64(), "Did not push to type map");
+            Assert.AreEqual(0, Julia.Eval("length(Reflection.TypeMap)").UnboxInt64(), "Did not push to type map");
         }
 
         [Test]
@@ -146,10 +135,10 @@ namespace TestJuliaInterface
 
         [Test]
         public void SharpStreams(){
-            var i = new SharpInputStream();
-            var o = new SharpOutputStream();
+            //var i = new SharpInputStream();
+            //var o = new SharpOutputStream();
 
-            i.Write("Test!");
+            //i.Write("Test!");
         }
     }
 

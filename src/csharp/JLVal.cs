@@ -7,8 +7,7 @@ namespace JULIAdotNET
 {
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct JLVal
-    {
+    public struct JLVal {
         internal readonly IntPtr ptr;
 
         public JLVal(object o) : this(DotNotType(o).ptr) { }
@@ -112,41 +111,41 @@ namespace JULIAdotNET
             get {
                 if (IsFloat64)
                     return UnboxFloat64();
-                else if (IsFloat32)
+                if (this.IsFloat32)
                     return UnboxFloat32();
-                else if (IsString)
+                if (this.IsString)
                     return UnboxString();
-                else if (IsInt64)
+                if (this.IsInt64)
                     return UnboxInt64();
-                else if (IsInt32)
+                if (this.IsInt32)
                     return UnboxInt32();
-                else if (IsInt16)
+                if (this.IsInt16)
                     return UnboxInt16();
-                else if (IsInt8)
+                if (this.IsInt8)
                     return UnboxInt8();
-                else if (IsBool)
+                if (this.IsBool)
                     return UnboxBool();
-                else if (IsUInt64)
+                if (this.IsUInt64)
                     return UnboxUInt64();
-                else if (IsUInt32)
+                if (this.IsUInt32)
                     return UnboxUInt32();
-                else if (IsUInt16)
+                if (this.IsUInt16)
                     return UnboxUInt16();
-                else if (IsUInt8)
+                if (this.IsUInt8)
                     return UnboxUInt8();
-                else if (IsSharpObject)
+                if (this.IsSharpObject)
                     return UnboxSharpObject();
-                else if (IsSharpType)
+                if (this.IsSharpType)
                     return UnboxSharpType();
-                else if (IsArray)
+                if (this.IsArray)
                     return UnboxArray();
-                else if (IsChar)
+                if (this.IsChar)
                     return UnboxChar();
-                else if (IsPtr)
+                if (this.IsPtr)
                     return UnboxPtr();
-                else if (IsNull)
+                if (this.IsNull)
                     return null;
-                else return this;
+                return this;
             }
         }
         
@@ -180,7 +179,6 @@ namespace JULIAdotNET
         public override string ToString() => JLFun.StringF.Invoke(this).UnboxString();
         public void Println() => JLFun.PrintlnF.Invoke(this);
         public void Print() => JLFun.PrintF.Invoke(this);
-        public ObjectManager.JuliaReference Reference() => ObjectManager._CreateJulia4SharpReference(this);
         public void Add(JLVal val) => JLFun.Push_F.Invoke(this, val);
         public void Remove(JLVal val) => JLFun.Delete_F.Invoke(this, val);
         public void RemoveAt(JLVal idx) => JLFun.Deleteat_F.Invoke(this, idx);
@@ -196,49 +194,47 @@ namespace JULIAdotNET
         internal void setEl(long idx, JLVal val) => JLFun.SetIndex_F.Invoke(this, val, idx);
         internal void setEl(JLArray idxs, JLVal val) => JLFun.SetIndex_F.Invoke(this, val, idxs);
 
-        public static JLVal DotNotType(object o){
+        public static JLVal DotNotType(object o)
+        {
             if (JLType.IsPointerType(o))
                 return new JLVal((IntPtr) o);
-            else{
-                if (o is long)
-                    return new JLVal((long)o);
-                else if (o is ulong)
-                    return new JLVal((ulong)o);
-                else if (o is int)
-                    return new JLVal((int)o);
-                else if (o is uint)
-                    return new JLVal((uint)o);
-                else if (o is short)
-                    return new JLVal((short)o);
-                else if (o is ushort)
-                    return new JLVal((ushort)o);
-                else if (o is sbyte)
-                    return new JLVal((sbyte)o);
-                else if (o is byte)
-                    return new JLVal((byte)o);
-                else if (o is double)
-                    return new JLVal((double)o);
-                else if (o is float)
-                    return new JLVal((float)o);
-                else if (o is bool)
-                    return new JLVal((bool)o);
-                else if (o is string)
-                    return new JLVal((string)o);
-                else if (o is Array)
-                    return new JLVal((Array)o);
-                else if (o is IntPtr)
-                    return Julia.BoxPtr((IntPtr)o);
-                else if (o is Type)
-                    return new JLVal((Type)o);
-                else if (o is MethodInfo)
-                    return new JLVal((MethodInfo)o);
-                else if (o is ConstructorInfo)
-                    return new JLVal((ConstructorInfo)o);
-                else if (o is FieldInfo)
-                    return new JLVal((FieldInfo)o);
-                else
-                    return NativeSharp.BoxObject(o);
-            }
+            if (o is long)
+                return new JLVal((long) o);
+            if (o is ulong)
+                return new JLVal((ulong) o);
+            if (o is int)
+                return new JLVal((int) o);
+            if (o is uint)
+                return new JLVal((uint) o);
+            if (o is short)
+                return new JLVal((short) o);
+            if (o is ushort)
+                return new JLVal((ushort) o);
+            if (o is sbyte)
+                return new JLVal((sbyte) o);
+            if (o is byte)
+                return new JLVal((byte) o);
+            if (o is double)
+                return new JLVal((double) o);
+            if (o is float)
+                return new JLVal((float) o);
+            if (o is bool)
+                return new JLVal((bool) o);
+            if (o is string)
+                return new JLVal((string) o);
+            if (o is Array)
+                return new JLVal((Array) o);
+            if (o is IntPtr)
+                return Julia.BoxPtr((IntPtr) o);
+            if (o is Type)
+                return new JLVal((Type) o);
+            if (o is MethodInfo)
+                return new JLVal((MethodInfo) o);
+            if (o is ConstructorInfo)
+                return new JLVal((ConstructorInfo) o);
+            if (o is FieldInfo)
+                return new JLVal((FieldInfo)o);
+            return NativeSharp.BoxObject(o);
         }
     }
 }

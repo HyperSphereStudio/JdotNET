@@ -15,8 +15,8 @@ module Sharp
 	_maketuple(vals) = tuple(vals...)
 	_linedEvaluation(s::String, file::String, m::Module) = Core.eval(m, Meta.parseall(s, filename=file))
 
-	include("JuliaForSharp/MemoryManagement.jl")
 	include("SharpForJulia/Native.jl")
+	include("JuliaForSharp/MemoryManagement.jl")
 	include("SharpForJulia/Reflection.jl")
 	include("SharpForJulia/NetCore.jl")
 	include("JuliaForSharp/Stream.jl")

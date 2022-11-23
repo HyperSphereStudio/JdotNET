@@ -27,6 +27,9 @@
     <None Remove="obj\**" />
     <None Remove="Properties\**" />
     <None Remove="Test\**" />
+    <Compile Update="JuliaInterface4\Class2.cs">
+      <Link>JuliaInterface\Class2.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
