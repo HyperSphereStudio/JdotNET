@@ -24,7 +24,7 @@ namespace Base {
             return Index != IntPtr.Zero;
         }
 
-        public void Reset() => _state = JPrimitive.IterateF.Invoke(_ptr);
+        public void Reset() => _state = IntPtr.Zero;
         public Any Current => _state[1];
         object IEnumerator.Current => Current;
         public void Dispose(){}
@@ -255,9 +255,37 @@ namespace Base {
             set => JPrimitive.SetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2, i3, i4});
         }
         #endregion
-
         #region UsefulFunctions
         public int Length => (int) JPrimitive.LengthF.UnsafeInvoke(this);
+        public bool Is(Any ty) => Julia.Isa(this, ty);
+        #endregion
+        #region Comparison
+
+        public static bool operator ==(Any v, IntPtr p) => v.ptr == p;
+        public static bool operator !=(Any v, IntPtr p) => v.ptr != p;
+        public static bool operator ==(IntPtr p, Any v) => v.ptr == p;
+        public static bool operator !=(IntPtr p, Any v) => v.ptr != p;
+        public static bool operator ==(Any v, Any v2) => (bool) JPrimitive.EqualsF.Invoke(v, v2);
+        public static bool operator !=(Any v, Any v2) => (bool) JPrimitive.NEqualsF.Invoke(v, v2);
+        public static bool operator >(Any v, Any v2) => (bool) JPrimitive.GreaterThenF.Invoke(v, v2);
+        public static bool operator <(Any v, Any v2) => (bool) JPrimitive.LessThenF.Invoke(v, v2);
+        public static bool operator >=(Any v, Any v2) => (bool) JPrimitive.GreaterThenOrEqualF.Invoke(v, v2);
+        public static bool operator <=(Any v, Any v2) => (bool) JPrimitive.LessThenOrEqualF.Invoke(v, v2);
+        public static Any operator !(Any v) => (bool)JPrimitive.NotF.Invoke(v);
+        #endregion
+        #region Math
+        public static Any operator ~(Any v) => JPrimitive.TildeF.Invoke(v);
+        public static Any operator ^(Any v, Any v2) => JPrimitive.CaretF.Invoke(v, v2);
+        public static Any operator &(Any v, Any v2) => JPrimitive.AmpersandF.Invoke(v, v2);
+        public static Any operator |(Any v, Any v2) =>  JPrimitive.PipeF.Invoke(v, v2);
+        public static Any operator %(Any v, Any v2) =>  JPrimitive.PercentF.Invoke(v, v2);
+        public static Any operator *(Any v, Any v2) =>  JPrimitive.MultF.Invoke(v, v2);
+        public static Any operator +(Any v, Any v2) =>  JPrimitive.AddF.Invoke(v, v2);
+        public static Any operator -(Any v, Any v2) => JPrimitive.SubF.Invoke(v, v2);
+        public static Any operator /(Any v, Any v2) => JPrimitive.DivF.Invoke(v, v2);
+        public static Any operator >>(Any v, int n) => JPrimitive.RightShiftF.Invoke(v, n);
+        public static Any operator <<(Any v, int n) =>  JPrimitive.LeftShiftF.Invoke(v, n);
+
         #endregion
 
         public override string ToString() => ptr == IntPtr.Zero ? "null" : JPrimitive.StringF.Invoke1(this).UnboxString();

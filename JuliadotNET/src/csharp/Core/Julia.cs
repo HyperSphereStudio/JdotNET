@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Base;
+using System.Runtime.CompilerServices;
 
 //Written by Johnathan Bizzano 
 namespace JULIAdotNET
@@ -55,7 +56,7 @@ namespace JULIAdotNET
             }
         }
         
-        public static bool Isa(Any v, Any t) => JuliaCalls.jl_isa(v, t) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)] public static bool Isa(Any v, Any t) => JuliaCalls.jl_isa(v, t) != 0;
 
         public static void SetGlobal(Any m, string sym, Any val) => SetGlobal(m, JuliaCalls.jl_symbol(sym), val);
         public static void SetGlobal(Any m, Any sym, Any val){
@@ -72,7 +73,8 @@ namespace JULIAdotNET
         
         public static Any GetGlobal(Any m, string sym) => GetGlobal(m, JuliaCalls.jl_symbol(sym));
 
-        public static void CheckExceptions() {
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)] public static void CheckExceptions() {
             if (JuliaCalls.jl_exception_occurred() != IntPtr.Zero)
                 throw new JuliaException(JuliaCalls.jl_exception_occurred());
         }
@@ -107,11 +109,10 @@ namespace JULIAdotNET
         public static Any BoxPtr(IntPtr ptr) => new(JuliaCalls.jl_box_voidpointer(ptr));
         public static unsafe Any AllocStruct(Any type, Span<Any> vals) => JuliaCalls.jl_new_structv(type, vals.ToPointer(), (uint) vals.Length);
 
-        internal static string MString(IntPtr p) {
+        private static string MString(IntPtr p) {
             CheckExceptions();
             return Marshal.PtrToStringAnsi(p);
         }
-        
     }
 
 

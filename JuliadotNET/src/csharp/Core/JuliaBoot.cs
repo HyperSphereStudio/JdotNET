@@ -115,7 +115,13 @@ namespace JULIAdotNET
                                  	            
 							    _makearray, 
                                  	            
-							    getindex, setindex!, length, iterate]
+							    getindex, setindex!, length, iterate,
+
+                                Module, Type, Function, Method,
+
+                                ==, !=, >, <, >=, <=, !, ~, ^, &, |, %, *, +, -, /, >>, <<,
+
+                                typeof]
                  
 						for i in eachindex(array)
 							unsafe_store!(ptr, array[i], i)
@@ -124,13 +130,13 @@ namespace JULIAdotNET
 				end
 			");
 
-            fixed (Any* values = stackalloc Any[16]) {
+            fixed (Any* values = stackalloc Any[39]) {
                 Julia.GetGlobal(sharp, "getprimitivetypes").Invoke(new Any(values));
                 
-                JPrimitive.Base = values[0];
-                JPrimitive.Core = values[1];
-                JPrimitive.Main = values[2];
-                JPrimitive.Meta = values[3];
+                JPrimitive.BaseM = values[0];
+                JPrimitive.CoreM = values[1];
+                JPrimitive.MainM = values[2];
+                JPrimitive.MetaM = values[3];
 
                 JPrimitive.SprintF = values[4];
                 JPrimitive.ShowErrorF = values[5];
@@ -145,6 +151,32 @@ namespace JULIAdotNET
                 JPrimitive.SetIndexF = values[13];
                 JPrimitive.LengthF = values[14];
                 JPrimitive.IterateF = values[15];
+
+                JPrimitive.ModuleT = values[16];
+                JPrimitive.TypeT = values[17];
+                JPrimitive.FunctionT = values[18];
+                JPrimitive.MethodT = values[19];
+                
+                JPrimitive.EqualsF = values[20];
+                JPrimitive.NEqualsF = values[21];
+                JPrimitive.GreaterThenF = values[22];
+                JPrimitive.LessThenF = values[23];
+                JPrimitive.GreaterThenOrEqualF = values[24];
+                JPrimitive.LessThenOrEqualF = values[25];
+                JPrimitive.NotF = values[26];
+                JPrimitive.TildeF = values[27];
+                JPrimitive.CaretF = values[28];
+                JPrimitive.AmpersandF = values[29];
+                JPrimitive.PipeF = values[30];
+                JPrimitive.PercentF = values[31];
+                JPrimitive.MultF = values[32];
+                JPrimitive.AddF = values[33];
+                JPrimitive.SubF = values[34];
+                JPrimitive.DivF = values[35];
+                JPrimitive.RightShiftF = values[36];
+                JPrimitive.LeftShiftF = values[37];
+
+                JPrimitive.GetTypeF = values[38];
             }
         }
     }
