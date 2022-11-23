@@ -1,6 +1,6 @@
-# JULIAdotNET
+# JdotNET
 
-JuliadotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
+JdotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
 
 
 ##Julia Interface from C#
