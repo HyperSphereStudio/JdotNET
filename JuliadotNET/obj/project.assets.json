@@ -23,10 +23,14 @@
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         },
         "compile": {
-          "lib/netstandard2.0/System.Collections.Immutable.dll": {}
+          "lib/netstandard2.0/System.Collections.Immutable.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/System.Collections.Immutable.dll": {}
+          "lib/netstandard2.0/System.Collections.Immutable.dll": {
+            "related": ".xml"
+          }
         },
         "build": {
           "buildTransitive/netcoreapp3.1/_._": {}
@@ -65,10 +69,14 @@
           "System.Collections.Immutable": "6.0.0"
         },
         "compile": {
-          "lib/netstandard2.0/System.Reflection.Metadata.dll": {}
+          "lib/netstandard2.0/System.Reflection.Metadata.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/System.Reflection.Metadata.dll": {}
+          "lib/netstandard2.0/System.Reflection.Metadata.dll": {
+            "related": ".xml"
+          }
         },
         "build": {
           "buildTransitive/netcoreapp3.1/_._": {}
@@ -77,10 +85,14 @@
       "System.Runtime.CompilerServices.Unsafe/6.0.0": {
         "type": "package",
         "compile": {
-          "lib/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll": {}
+          "lib/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll": {}
+          "lib/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll": {
+            "related": ".xml"
+          }
         },
         "build": {
           "buildTransitive/netcoreapp3.1/_._": {}
@@ -321,11 +333,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj",
+      "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj",
       "projectName": "JuliadotNET",
-      "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj",
+      "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj",
       "packagesPath": "C:\\Users\\JohnB\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\obj\\",
+      "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\JohnB\\AppData\\Roaming\\NuGet\\NuGet.Config",

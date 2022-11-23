@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lo5RxhI/FyjLUy/ViZKWChY+lYki6hSkTIFtcuHe4fQQlPmlhpQ7P1W95312hL/itfPRtLPcpIki8gLnidZGXA==",
+  "dgSpecHash": "2qnVDYat+TdwTPHZAeyXvbLeOw9l5GBiU0pkUbi3M0ECl8yA7oX7lgjiZyVBvsK5Koe3TCSVl6VU0ep29lGkZQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj",
+  "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\JohnB\\.nuget\\packages\\lokad.ilpack\\0.2.0\\lokad.ilpack.0.2.0.nupkg.sha512",
     "C:\\Users\\JohnB\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",

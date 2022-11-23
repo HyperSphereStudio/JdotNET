@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "msULflEbxPVQBhJa2OCdRn4uvGK4TZsSuaPATA/89VDLSu3WM0fYxRv6ca1oTy9QyNqfHf6LJq1xMPx7mZwY7w==",
+  "dgSpecHash": "ViVd7NOCxqAB2lWCmRxtbXuGCXr+VxXQmyZinHr8DklGWvi5qhWv9i8fbyFhKaWPDDPNFlLH3KYToFJtYOwsEg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\Sandbox.csproj",
+  "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\JohnB\\.nuget\\packages\\lokad.ilpack\\0.2.0\\lokad.ilpack.0.2.0.nupkg.sha512",
     "C:\\Users\\JohnB\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\Sandbox.csproj": {}
+    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj": {}
   },
   "projects": {
-    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj": {
+    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj",
+        "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj",
         "projectName": "JuliadotNET",
-        "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj",
+        "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj",
         "packagesPath": "C:\\Users\\JohnB\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\obj\\",
+        "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\JohnB\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -65,14 +65,14 @@
         }
       }
     },
-    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\Sandbox.csproj": {
+    "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\Sandbox.csproj",
+        "projectUniqueName": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj",
         "projectName": "Sandbox",
-        "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\Sandbox.csproj",
+        "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj",
         "packagesPath": "C:\\Users\\JohnB\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\Sandbox\\obj\\",
+        "outputPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\JohnB\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -89,8 +89,8 @@
           "net5.0": {
             "targetAlias": "net5.0",
             "projectReferences": {
-              "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj": {
-                "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\JuliadotNET\\JuliadotNET\\JuliadotNET.csproj"
+              "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj": {
+                "projectPath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\JuliadotNET\\JuliadotNET.csproj"
               }
             }
           }
