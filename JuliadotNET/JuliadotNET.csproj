@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <Title>JuliadotNET</Title>
+        <Authors>Johnathan Bizzano</Authors>
+        <PackageProjectUrl>https://github.com/HyperSphereStudio/JULIAdotNET</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/HyperSphereStudio/JULIAdotNET/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/HyperSphereStudio/JULIAdotNET</RepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="src\julia" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Lokad.ILPack" Version="0.2.0" />
+    </ItemGroup>
+
+</Project>

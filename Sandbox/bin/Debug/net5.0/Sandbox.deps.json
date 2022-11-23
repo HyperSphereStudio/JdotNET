@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "Sandbox/1.0.0": {
+        "dependencies": {
+          "JuliadotNET": "1.0.0"
+        },
+        "runtime": {
+          "Sandbox.dll": {}
+        }
+      },
+      "JuliadotNET/1.0.0": {
+        "runtime": {
+          "JuliadotNET.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Sandbox/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "JuliadotNET/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
