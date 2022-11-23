@@ -18,7 +18,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="src\julia" />
+      <Folder Include="src\julia\Core" />
+      <Folder Include="src\julia\Dynamics" />
+      <Folder Include="src\julia\Statics" />
+      <Folder Include="src\julia\Stdlib" />
+      <Folder Include="src\julia\Utils" />
     </ItemGroup>
 
     <ItemGroup>
