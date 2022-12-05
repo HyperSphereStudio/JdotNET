@@ -134,7 +134,7 @@ namespace JULIAdotNET
         public static extern Any jl_symbol(string sym);
         
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int jl_types_equal(Any v1, Any v2);
+        public static extern int jl_types_equal(JType v1, JType v2);
 
         
         
@@ -206,7 +206,7 @@ namespace JULIAdotNET
 		public static extern int jl_binding_resolved_p(IntPtr  m, IntPtr var);
         
 		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-		public static extern int jl_is_const(IntPtr  m, IntPtr var);
+		public static extern int jl_is_const(Any m, Any sym);
         
         
 		[DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]

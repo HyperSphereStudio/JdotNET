@@ -4,26 +4,21 @@ using Base;
 //Written by Johnathan Bizzano
 namespace JULIAdotNET
 {
-    public class JuliaException : Exception
-    {
-        private readonly Any _ptr;
+    public class JuliaException : Exception {
 
-        public JuliaException(Any excep){
-            _ptr = excep;
-        }
-
-        public override string ToString() {
+        private static string GetMessage(Any ptr) {
             try {
-                return "JuliaException(\"" + JPrimitive.SprintF
-                    .UnsafeInvoke(JPrimitive.ShowErrorF, _ptr, JPrimitive.CatchBackTraceF.UnsafeInvoke())
+                return "JuliaException(\"" + JPrimitive.sprintF
+                    .UnsafeInvoke(JPrimitive.showerrorF, ptr, JPrimitive.catch_backtraceF.UnsafeInvoke())
                     .UnboxString() + "\")";
             }catch (Exception e) {
                 Console.WriteLine("Error Writing Exception To Console!");
                 Console.WriteLine(e);
-                Console.WriteLine(_ptr.ToString());
+                Console.WriteLine(ptr.ToString());
                 throw;
             }
         }
-        public override string Message => ToString();
+        
+        public JuliaException(Any excep) : base(GetMessage(excep)) => JuliaCalls.jl_exception_clear();
     }
 }

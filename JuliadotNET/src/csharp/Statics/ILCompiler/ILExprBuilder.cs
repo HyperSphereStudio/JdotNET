@@ -10,7 +10,10 @@ namespace runtime.ILCompiler
     public struct IlExprBuilder
     {
         private readonly ILGenerator _il;
-        private readonly object _internalMethod;
+        public readonly object InternalMethod;
+        
+        public static implicit operator MethodBuilder(IlExprBuilder b) => (MethodBuilder) b.InternalMethod;
+        public static implicit operator ConstructorBuilder(IlExprBuilder b) => (ConstructorBuilder) b.InternalMethod;
 
         #region BuilderExtensions
 
@@ -34,9 +37,9 @@ namespace runtime.ILCompiler
 
             public void Invoke(IlExprBuilder fb, bool requiresConstructor = false, bool requiresMethod = false)
             {
-                if (fb._internalMethod is MethodBuilder mb && !requiresConstructor)
+                if (fb.InternalMethod is MethodBuilder mb && !requiresConstructor)
                     Invoke(mb);
-                else if (fb._internalMethod is ConstructorBuilder cb && !requiresMethod)
+                else if (fb.InternalMethod is ConstructorBuilder cb && !requiresMethod)
                     Invoke(cb);
                 else throw new Exception("Unable To Invoke Unknown Internal Method!");
             }
@@ -48,7 +51,7 @@ namespace runtime.ILCompiler
 
         public struct ILLoadExprBuilder
         {
-            private static readonly MethodInfo GET_RUNTIME_TYPE = SharpReflect.GetMethod<Type>("GetTypeFromHandle");
+            private static readonly MethodInfo GET_RUNTIME_TYPE = typeof(System.Type).GetMethod("GetTypeFromHandle");
 
             private readonly IlExprBuilder _eb;
             internal ILLoadExprBuilder(IlExprBuilder eb) => _eb = eb;
@@ -84,8 +87,7 @@ namespace runtime.ILCompiler
             public void Float32(float v) => _eb._il.Emit(OpCodes.Ldc_R4, v);
             public void Float64(double v) => _eb._il.Emit(OpCodes.Ldc_R8, v);
 
-            public void Type(System.Type t)
-            {
+            public void Type(System.Type t) {
                 _eb._il.Emit(OpCodes.Ldtoken, t);
                 _eb.Function.Invoke(GET_RUNTIME_TYPE);
             }
@@ -211,7 +213,7 @@ namespace runtime.ILCompiler
         {
             private readonly IlExprBuilder _eb;
             internal ILCreateExprBuilder(IlExprBuilder eb) => _eb = eb;
-            public LocalBuilder Local(Type t) => _eb._il.DeclareLocal(t);
+            public LocalBuilder Local(Type t, bool pinned = false) => _eb._il.DeclareLocal(t, pinned);
             public LocalBuilder Local<T>() => Local(typeof(T));
 
             public LocalBuilder LocalAndStore(Type t)
@@ -233,6 +235,39 @@ namespace runtime.ILCompiler
         {
             private readonly IlExprBuilder _eb;
             internal ILArrayExprBuilder(IlExprBuilder eb) => _eb = eb;
+
+            public void LoadElement(int i, Type t) {
+                _eb.Load.Const(i);
+                LoadElement(t);
+            }
+            
+            public void LoadElement<T>(int i) => LoadElement(i, typeof(T));
+
+            public void LoadElement(Type t) => _eb._il.Emit(OpCodes.Ldelem, t);
+            public void LoadElement<T>() => LoadElement(typeof(T));
+            
+            public void StoreElement(Type t) => _eb._il.Emit(OpCodes.Stelem, t);
+            public void StoreElement<T>() => StoreElement(typeof(T));
+            public void StoreElement<T>(int i) => StoreElement(i, typeof(T));
+
+            public void LoadElementArrayAddress() => _eb._il.Emit(OpCodes.Ldelema);
+
+            public void LoadElementArrayAddress(int i) {
+                _eb.Load.Const(i);
+                LoadElementArrayAddress();
+            }
+            
+            public void StoreElement(int i, Type t) {
+                _eb.Load.Const(i);
+                StoreElement(t);
+            }
+
+            public void Create1d(Type elType) => _eb._il.Emit(OpCodes.Newarr, elType);
+
+            public void Create1d(Type elType, int size) {
+                _eb.Load.Const(size);
+                Create1d(elType);
+            }
         }
 
         public struct ILUnsafeExprBuilder
@@ -277,7 +312,7 @@ namespace runtime.ILCompiler
 
         private IlExprBuilder(ILGenerator il, object internalMethod) {
             _il = il;
-            _internalMethod = internalMethod;
+            InternalMethod = internalMethod;
         }
 
         public IlExprBuilder(MethodBuilder mb) : this(mb.GetILGenerator(), mb) {}

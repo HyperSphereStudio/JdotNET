@@ -1,0 +1,12 @@
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\bin\Debug\net6.0\JuliadotNET.deps.json
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\bin\Debug\net6.0\JuliadotNET.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\bin\Debug\net6.0\JuliadotNET.pdb
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.csproj.AssemblyReference.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.AssemblyInfoInputs.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.AssemblyInfo.cs
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.csproj.CoreCompileInputs.cache
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\refint\JuliadotNET.dll
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\JuliadotNET.pdb
+C:\Users\JohnB\Desktop\HyperProjects\HExcel\JULIAdotNET\JuliadotNET\obj\Debug\net6.0\ref\JuliadotNET.dll

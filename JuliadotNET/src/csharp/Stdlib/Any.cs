@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
@@ -9,31 +7,11 @@ using JULIAdotNET;
 using JULIAdotNET.Dynamics;
 
 namespace Base {
-    public struct JEnumerator : IEnumerator<Any> {
-        private readonly Any _ptr;
-        private Any _state;
-        public Any Index => _state[2];
-
-        public JEnumerator(Any ptr) {
-            _ptr = ptr;
-            _state = IntPtr.Zero;
-        }
-
-        public bool MoveNext() {
-            _state = _state == IntPtr.Zero ? JPrimitive.IterateF.Invoke(_ptr) : JPrimitive.IterateF.Invoke(_ptr, Index);
-            return Index != IntPtr.Zero;
-        }
-
-        public void Reset() => _state = IntPtr.Zero;
-        public Any Current => _state[1];
-        object IEnumerator.Current => Current;
-        public void Dispose(){}
-    }
-
     
     [StructLayout(LayoutKind.Sequential)]
-    public struct Any : IDynamicMetaObjectProvider, IEnumerable<Any> {
+    public struct Any : IDynamicMetaObjectProvider, JEnumerable<Any, Any, Any, Any>, JVal<Any> {
         private readonly IntPtr ptr;
+        Any JVal<Any>.This => this;
 
         public Any(IntPtr ptr) => this.ptr = ptr;
 
@@ -239,25 +217,31 @@ namespace Base {
         #endregion
         #region Array
         public Any this[Any idx] {
-            get => JPrimitive.GetIndexF.UnsafeInvoke(ptr, idx);
-            set => JPrimitive.SetIndexF.UnsafeInvoke(ptr, idx, value);
+            get => JPrimitive.getindexF.UnsafeInvoke(ptr, idx);
+            set => JPrimitive.setindexNotF.UnsafeInvoke(ptr, idx, value);
         }
         public Any this[Any i1, Any i2] {
-            get => JPrimitive.GetIndexF.UnsafeInvoke(ptr, i1, i2);
-            set => JPrimitive.SetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2});
+            get => JPrimitive.getindexF.UnsafeInvoke(ptr, i1, i2);
+            set => JPrimitive.setindexNotF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2});
         }
         public Any this[Any i1, Any i2, Any i3] {
-            get => JPrimitive.GetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, i1, i2, i3});
-            set => JPrimitive.SetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2, i3});
+            get => JPrimitive.getindexF.UnsafeInvoke(stackalloc Any[]{ptr, i1, i2, i3});
+            set => JPrimitive.setindexNotF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2, i3});
         }
         public Any this[Any i1, Any i2, Any i3, Any i4] {
-            get => JPrimitive.GetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, i1, i2, i3, i4});
-            set => JPrimitive.SetIndexF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2, i3, i4});
+            get => JPrimitive.getindexF.UnsafeInvoke(stackalloc Any[]{ptr, i1, i2, i3, i4});
+            set => JPrimitive.setindexNotF.UnsafeInvoke(stackalloc Any[]{ptr, value, i1, i2, i3, i4});
         }
         #endregion
         #region UsefulFunctions
-        public int Length => (int) JPrimitive.LengthF.UnsafeInvoke(this);
-        public bool Is(Any ty) => Julia.Isa(this, ty);
+
+            public Any Module => JPrimitive.parentmoduleF.Invoke(this);
+            public int Length => (int) JPrimitive.lengthF.UnsafeInvoke(this);
+            public int SizeOf => (int)JPrimitive.sizeofF.Invoke(this);
+            public JType Type => JPrimitive.typeofF.Invoke(this);
+            public bool Is(Any ty) => Julia.Isa(this, ty);
+            public static string operator +(string s, Any v) => s + v.ToString();
+            public static string operator +(Any v, string s) => v.ToString() + s;
         #endregion
         #region Comparison
 
@@ -265,32 +249,44 @@ namespace Base {
         public static bool operator !=(Any v, IntPtr p) => v.ptr != p;
         public static bool operator ==(IntPtr p, Any v) => v.ptr == p;
         public static bool operator !=(IntPtr p, Any v) => v.ptr != p;
-        public static bool operator ==(Any v, Any v2) => (bool) JPrimitive.EqualsF.Invoke(v, v2);
-        public static bool operator !=(Any v, Any v2) => (bool) JPrimitive.NEqualsF.Invoke(v, v2);
-        public static bool operator >(Any v, Any v2) => (bool) JPrimitive.GreaterThenF.Invoke(v, v2);
-        public static bool operator <(Any v, Any v2) => (bool) JPrimitive.LessThenF.Invoke(v, v2);
-        public static bool operator >=(Any v, Any v2) => (bool) JPrimitive.GreaterThenOrEqualF.Invoke(v, v2);
-        public static bool operator <=(Any v, Any v2) => (bool) JPrimitive.LessThenOrEqualF.Invoke(v, v2);
+        public static bool operator ==(Any v, Any v2) => (bool) JPrimitive.EqualityF.Invoke(v, v2);
+        public static bool operator !=(Any v, Any v2) => (bool) JPrimitive.InequalityF.Invoke(v, v2);
+        public static bool operator >(Any v, Any v2) => (bool) JPrimitive.GreaterThanF.Invoke(v, v2);
+        public static bool operator <(Any v, Any v2) => (bool) JPrimitive.LessThanF.Invoke(v, v2);
+        public static bool operator >=(Any v, Any v2) => (bool) JPrimitive.GreaterThanOrEqualF.Invoke(v, v2);
+        public static bool operator <=(Any v, Any v2) => (bool) JPrimitive.LessThanOrEqualF.Invoke(v, v2);
         public static Any operator !(Any v) => (bool)JPrimitive.NotF.Invoke(v);
         #endregion
         #region Math
-        public static Any operator ~(Any v) => JPrimitive.TildeF.Invoke(v);
-        public static Any operator ^(Any v, Any v2) => JPrimitive.CaretF.Invoke(v, v2);
-        public static Any operator &(Any v, Any v2) => JPrimitive.AmpersandF.Invoke(v, v2);
-        public static Any operator |(Any v, Any v2) =>  JPrimitive.PipeF.Invoke(v, v2);
-        public static Any operator %(Any v, Any v2) =>  JPrimitive.PercentF.Invoke(v, v2);
-        public static Any operator *(Any v, Any v2) =>  JPrimitive.MultF.Invoke(v, v2);
-        public static Any operator +(Any v, Any v2) =>  JPrimitive.AddF.Invoke(v, v2);
-        public static Any operator -(Any v, Any v2) => JPrimitive.SubF.Invoke(v, v2);
-        public static Any operator /(Any v, Any v2) => JPrimitive.DivF.Invoke(v, v2);
+        public static Any operator ~(Any v) => JPrimitive.OnesComplementF.Invoke(v);
+        public static Any operator ^(Any v, Any v2) => JPrimitive.ExclusiveOrF.Invoke(v, v2);
+        public static Any operator &(Any v, Any v2) => JPrimitive.BitwiseAndF.Invoke(v, v2);
+        public static Any operator |(Any v, Any v2) =>  JPrimitive.BitwiseOrF.Invoke(v, v2);
+        public static Any operator %(Any v, Any v2) =>  JPrimitive.ModulusF.Invoke(v, v2);
+        public static Any operator *(Any v, Any v2) =>  JPrimitive.MultiplyF.Invoke(v, v2);
+        public static Any operator +(Any v, Any v2) =>  JPrimitive.AdditionF.Invoke(v, v2);
+        public static Any operator -(Any v, Any v2) => JPrimitive.SubtractionF.Invoke(v, v2);
+        public static Any operator /(Any v, Any v2) => JPrimitive.DivisionF.Invoke(v, v2);
         public static Any operator >>(Any v, int n) => JPrimitive.RightShiftF.Invoke(v, n);
         public static Any operator <<(Any v, int n) =>  JPrimitive.LeftShiftF.Invoke(v, n);
 
         #endregion
+        #region Enumerable
+        void JEnumerable<Any, Any, Any, Any>.EnumerationReset(Any s, out Any ns) => ns = IntPtr.Zero;
+        Any JEnumerable<Any, Any, Any, Any>.EnumerationCurrent(Any s) => s[1];
+        void JEnumerable<Any, Any, Any, Any>.EnumerationDispose(){}
 
-        public override string ToString() => ptr == IntPtr.Zero ? "null" : JPrimitive.StringF.Invoke1(this).UnboxString();
-        IEnumerator IEnumerable.GetEnumerator() => new JEnumerator(this);
-        public IEnumerator<Any> GetEnumerator() => new JEnumerator(this);
+        bool JEnumerable<Any, Any, Any, Any>.EnumerationMoveNext(Any s, out Any ns) {
+            ns = s == IntPtr.Zero ? JPrimitive.iterateF.Invoke(this) : JPrimitive.iterateF.Invoke(this, s[2]);
+            return ns[2] != IntPtr.Zero;
+        }
+
+        Any JEnumerable<Any, Any, Any, Any>.EnumerationIndex(Any s) => s[2];
+        #endregion
+        #region Builtin
+        public override string ToString() => ptr == IntPtr.Zero ? "null" : JPrimitive.stringF.Invoke1(this).UnboxString();
+        public override int GetHashCode() => (int) JPrimitive.hashF.Invoke1(this);
         public DynamicMetaObject GetMetaObject(Expression parameter) => new JuliaDynamic(parameter, new(this));
+        #endregion
     }
 }

@@ -41,7 +41,7 @@ namespace JULIAdotNET.Dynamics
             var expr = 
                 
                 Expression.New(JuliaDyVci,
-                Expression.Call(Expression.Constant(JPrimitive.GetPropertyF), FuncInvokeMi,
+                Expression.Call(Expression.Constant(JPrimitive.getpropertyF), FuncInvokeMi,
                                 Expression.Convert(Expression, typeof(DyAny)),
                                 Expression.Constant(JuliaCalls.jl_symbol(binder.Name))));
             

@@ -14,12 +14,28 @@ namespace runtime.ILCompiler
             InternalBuilder = t;
         }
 
-        internal FieldBuilder CreateFieldImpl(string name, Type type, FieldAttributes extra = 0) => InternalBuilder.DefineField(name, type, FieldAttributes.Public | extra);
+        private FieldBuilder CreateFieldImpl(string name, Type type, FieldAttributes extra) => InternalBuilder.DefineField(name, type, extra);
 
-        public FieldBuilder CreateField(string name, Type type, bool isConst) => CreateFieldImpl(name, type, isConst ? FieldAttributes.InitOnly : 0);
-        public IlExprBuilder CreateMethod(string name, Type returnType, params Type[] parameters) =>
-            new(InternalBuilder.DefineMethod(name, MethodAttributes.Static | MethodAttributes.Public, 
-                returnType, parameters));
+        public FieldBuilder CreateField(string name, Type type, bool isConst, bool isStatic = false, FieldAttributes extraAttribs = FieldAttributes.Public) {
+            FieldAttributes fa = extraAttribs;
+            if (isConst)
+                fa |= FieldAttributes.InitOnly;
+            if (isStatic)
+                fa |= FieldAttributes.Static;
+            return CreateFieldImpl(name, type, fa);
+        }
+
+        public PropertyBuilder CreateProperty(string name, Type t, PropertyAttributes attribs = PropertyAttributes.None) => InternalBuilder.DefineProperty(name, attribs, t, Type.EmptyTypes);
+
+        public IlExprBuilder CreateMethod(string name, Type returnType, params Type[] parameters) => CreateMethod(name, returnType, MethodAttributes.Static | MethodAttributes.Public, parameters);
+
+        public IlExprBuilder CreateMethod(string name, Type returnType, MethodAttributes attributes, params Type[] parameters) => new(InternalBuilder.DefineMethod(name, attributes, returnType, parameters));
+
+        public IlExprBuilder CreateGetMethod(PropertyBuilder pb) {
+            var mb = CreateMethod("get_" + pb.Name, pb.PropertyType, MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.SpecialName, Type.EmptyTypes);
+            pb.SetGetMethod(mb);
+            return mb;
+        }
 
         public IlExprBuilder CreateMethod(string name) => CreateMethod(name, typeof(void));
         public IlExprBuilder CreateMethod<TOut>(string name) => CreateMethod(name, typeof(TOut));
@@ -43,6 +59,15 @@ namespace runtime.ILCompiler
             var ti = TypeInitializer;
             ti.ReturnVoid();
             return InternalBuilder.CreateType();
+        }
+
+        public static bool IsAllowedName(string s) {
+            if (!(char.IsLetter(s[0]) || s[0] == '_'))
+                return false;
+            foreach(var c in s)
+                if (!(char.IsLetterOrDigit(c) || char.IsSeparator(c)))
+                    return false;
+            return true;
         }
     }
 }

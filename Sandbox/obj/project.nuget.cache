@@ -1,17 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "ViVd7NOCxqAB2lWCmRxtbXuGCXr+VxXQmyZinHr8DklGWvi5qhWv9i8fbyFhKaWPDDPNFlLH3KYToFJtYOwsEg==",
+  "dgSpecHash": "p7prXBU/52KGplOIy+YtHD6sYFcWyH+7pmLL6hy3inSsoNXuOW9qDd73cnlxowLA/Cu66A+q30yRm/iDpc78zA==",
   "success": true,
   "projectFilePath": "C:\\Users\\JohnB\\Desktop\\HyperProjects\\HExcel\\JULIAdotNET\\Sandbox\\Sandbox.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\JohnB\\.nuget\\packages\\lokad.ilpack\\0.2.0\\lokad.ilpack.0.2.0.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.reflection.emit\\4.7.0\\system.reflection.emit.4.7.0.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.reflection.emit.lightweight\\4.7.0\\system.reflection.emit.lightweight.4.7.0.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.reflection.metadata\\6.0.1\\system.reflection.metadata.6.0.1.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
-    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.17\\microsoft.netcore.app.host.win-x64.5.0.17.nupkg.sha512"
+    "C:\\Users\\JohnB\\.nuget\\packages\\lokad.ilpack\\0.1.7\\lokad.ilpack.0.1.7.nupkg.sha512",
+    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.7\\microsoft.netcore.app.ref.6.0.7.nupkg.sha512",
+    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.7\\microsoft.windowsdesktop.app.ref.6.0.7.nupkg.sha512",
+    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.7\\microsoft.aspnetcore.app.ref.6.0.7.nupkg.sha512",
+    "C:\\Users\\JohnB\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.7\\microsoft.netcore.app.host.win-x64.6.0.7.nupkg.sha512"
   ],
   "logs": []
 }

@@ -95,6 +95,8 @@ namespace JULIAdotNET
             return val;
         }
 
+        public static Any Eval(string str, Any module) => JPrimitive.ievalF.Invoke(str, module);
+
         public static void PUSH_GC(Span<Any> values){
             lock (_gclock) JuliaGC.JL_GC_PUSHARGS(values);
         }

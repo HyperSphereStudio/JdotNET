@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "JuliadotNET/1.0.0": {
+        "dependencies": {
+          "Lokad.ILPack": "0.1.7"
+        },
+        "runtime": {
+          "JuliadotNET.dll": {}
+        }
+      },
+      "Lokad.ILPack/0.1.7": {
+        "runtime": {
+          "lib/netcoreapp2.1/Lokad.ILPack.dll": {
+            "assemblyVersion": "0.1.7.0",
+            "fileVersion": "0.1.7.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "JuliadotNET/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Lokad.ILPack/0.1.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-0tNM0zh0zJcjHUt/PHqgeML7OoWof0tiltGLcX2zur8Kjildye01X/RDwTt4Fxru5uIGXQvGHWqkWicvHmpcaQ==",
+      "path": "lokad.ilpack/0.1.7",
+      "hashPath": "lokad.ilpack.0.1.7.nupkg.sha512"
+    }
+  }
+}

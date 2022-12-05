@@ -1,6 +1,6 @@
-﻿using System;
+﻿using JuliadotNET;
+using System;
 using JULIAdotNET;
-using Base;
 
 namespace Sandbox
 {
@@ -8,10 +8,10 @@ namespace Sandbox
         static void Main(string[] args) {
             try {
                 Julia.Init();
-                Console.WriteLine(new Any(24) * 4 + 8);
+                new JuliaStaticLibrary(JPrimitive.BaseM).Generate("Base.dll");
                 Julia.Exit();
             }catch (Exception e) {
-                e.Print();
+                e.PrintExp();
             }
         }
     }

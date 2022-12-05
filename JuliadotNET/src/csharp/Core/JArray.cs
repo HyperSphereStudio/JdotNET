@@ -88,7 +88,7 @@ namespace JULIAdotNET
     public struct JArray
     {
         private Any _ptr;
-        public int Length => (int) JPrimitive.LengthF.UnsafeInvoke(this);
+        public int Length => (int) JPrimitive.lengthF.UnsafeInvoke(this);
 
         public JArray(JType type, long length) : this(JuliaCalls.jl_alloc_array_1d(JuliaCalls.jl_apply_array_type(type, 1), (nint) length)) { }
         public JArray(JType type, long row, long col) : this(JuliaCalls.jl_alloc_array_2d(JuliaCalls.jl_apply_array_type(type, 2), (nint) row, (nint) col)) { }
@@ -102,7 +102,7 @@ namespace JULIAdotNET
 
         public static unsafe JArray Alloc(JType eltype, params int[] dimensions){
             fixed (void* p = dimensions){
-                return JPrimitive.MakeArrayF.Invoke(eltype, new Any(p), dimensions.Length);
+                return JPrimitive.makearrayF.Invoke(eltype, new Any(p), dimensions.Length);
             }
         }
         

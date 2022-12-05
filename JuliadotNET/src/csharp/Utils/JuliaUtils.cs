@@ -22,7 +22,7 @@ namespace JULIAdotNET
             };
             proc.Start();
             var location = proc.StandardOutput.ReadToEnd();
-            Regex rg = new Regex("JULIAPPPATH(.+)JULIAPPPATH");
+            Regex rg = new("JULIAPPPATH(.+)JULIAPPPATH");
             var match = rg.Match(location);
 
             if (match.Success)
@@ -34,7 +34,7 @@ namespace JULIAdotNET
         
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)] public static unsafe T* ToPointer<T>(this Span<T> s) where T: unmanaged => (T*) Unsafe.AsPointer(ref s.GetPinnableReference());
         
-        public static void Print(this Exception x, TextWriter tw = null) {
+        public static void PrintExp(this Exception x, TextWriter tw = null) {
             tw ??= Console.Out;
             tw.WriteLine(x.GetBaseException());
             
@@ -55,5 +55,9 @@ namespace JULIAdotNET
                 tw.WriteLine("  -->  ");
             }
         }
+
+        public static void Print<T>(this T o) => Console.Write(o);
+        public static void Println<T>(this T o) => Console.WriteLine(o);
+        
     }
 }
