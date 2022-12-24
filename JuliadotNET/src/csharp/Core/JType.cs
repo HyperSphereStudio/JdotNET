@@ -14,7 +14,7 @@ namespace JULIAdotNET {
     public struct JType {
         private readonly Any _ptr;
         public string Name => ToString();
-        public Any Module => _ptr.Module;
+        public JModule Module => _ptr.Module;
         public bool IsMutable => (bool) JPrimitive.ismutableF.Invoke(this);
         public bool IsImmutable => (bool) JPrimitive.isimmutableF.Invoke(this);
         public bool IsAbstract => (bool) JPrimitive.isabstracttypeF.Invoke(this);
@@ -52,12 +52,20 @@ namespace JULIAdotNET {
 
         public static bool operator ==(JType v, JType p) => JuliaCalls.jl_types_equal(v, p) != 0;
         public static bool operator !=(JType v, JType p) => !(v == p);
+
+        #region NeededOverloadedOperators
         public override string ToString() => _ptr.ToString();
         public override int GetHashCode() => _ptr.GetHashCode();
+        public override bool Equals(object o) => _ptr.Equals(o);
+        #endregion
 
         public string FieldName(int i) => (string) JPrimitive.fieldnameF.Invoke(this, i);
         public int FieldOffset(int i) => (int) JPrimitive.fieldoffsetF.Invoke(this, i);
         public JType FieldType(int i) => JPrimitive.fieldtypeF.Invoke(this, i);
+
+
+        public static JType GetJuliaTypeFromNetType(Type t) => JPrimitive.FindJuliaPrimitiveEquivilent(t);
     }
+    
     
 }

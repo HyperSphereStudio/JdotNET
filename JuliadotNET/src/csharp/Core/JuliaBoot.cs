@@ -88,6 +88,7 @@ namespace JULIAdotNET
                 JuliaCalls.jl_init();
             }
             JPrimitive.primitive_init();
+            JPrimitive.init_primitive_types();
             Julia.CheckExceptions();
             Julia.CheckExceptions();
         }

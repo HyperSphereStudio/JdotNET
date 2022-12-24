@@ -71,9 +71,10 @@ namespace JULIAdotNET
             return val;
         }
         
-        public static Any GetGlobal(Any m, string sym) => GetGlobal(m, JuliaCalls.jl_symbol(sym));
-
+        public static Any Symbol(string str) => JuliaCalls.jl_symbol(str);
         
+        public static Any GetGlobal(Any m, string sym) => GetGlobal(m, Symbol(sym));
+
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)] public static void CheckExceptions() {
             if (JuliaCalls.jl_exception_occurred() != IntPtr.Zero)
                 throw new JuliaException(JuliaCalls.jl_exception_occurred());
@@ -106,9 +107,6 @@ namespace JULIAdotNET
         }
 
         public static string UnboxString(Any val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_string_ptr(val));
-        public static string TypeNameStr(Any val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_typename_str(val));
-        public static string TypeOfStr(Any val) => Marshal.PtrToStringAnsi(JuliaCalls.jl_typeof_str(val));
-        public static Any BoxPtr(IntPtr ptr) => new(JuliaCalls.jl_box_voidpointer(ptr));
         public static unsafe Any AllocStruct(Any type, Span<Any> vals) => JuliaCalls.jl_new_structv(type, vals.ToPointer(), (uint) vals.Length);
 
         private static string MString(IntPtr p) {

@@ -109,7 +109,7 @@ namespace JULIAdotNET
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr jl_cstr_to_string(string s);
-
+        
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static unsafe extern Any jl_call(Any f, Any* args, Int32 arg_count);
@@ -533,26 +533,26 @@ namespace JULIAdotNET
         public static extern int jl_isa(IntPtr a, IntPtr t);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_new_array(IntPtr atype, IntPtr dims);
+        public static extern JArray jl_new_array(JType atype, JArray dims);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_reshape_array(IntPtr atype, IntPtr data, IntPtr dims);
+        public static extern JArray jl_reshape_array(JType atype, JArray data, JArray dims);
         
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_ptr_to_array_1d(IntPtr atype, IntPtr data, nint nel, int own_buffer);
+        public static extern JArray jl_ptr_to_array_1d(JType atype, IntPtr data, nint nel, int ownBuffer);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_ptr_to_array(IntPtr atype, IntPtr data, IntPtr dims, int own_buffer);
+        public static extern JArray jl_ptr_to_array(JType atype, IntPtr data, Any dims, int ownBuffer);
         
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern JType jl_apply_array_type(JType type, nint dim);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_array_ptr(IntPtr a);
+        public static extern IntPtr jl_array_ptr(JArray a);
 
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr jl_array_eltype(IntPtr a);
+        public static extern JType jl_array_eltype(IntPtr a);
 
         [DllImport("libjulia.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int jl_array_rank(IntPtr a);

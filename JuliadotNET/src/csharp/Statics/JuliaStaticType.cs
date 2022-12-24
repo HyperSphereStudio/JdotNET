@@ -68,9 +68,9 @@ namespace JuliadotNET
         private bool ResolveLocalType(JuliaStaticModule mod, JType ty, out Type t) {
             List<Any> modules = new();
             var w = ty.Module;
-            while (w != w.Module) {
+            while (w != w.Parent) {
                 modules.Add(w);
-                w = w.Module;
+                w = w.Parent;
             }
 
             if (modules.Count > 0) {

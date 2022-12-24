@@ -58,6 +58,5 @@ namespace JULIAdotNET
 
         public static void Print<T>(this T o) => Console.Write(o);
         public static void Println<T>(this T o) => Console.WriteLine(o);
-        
     }
 }
