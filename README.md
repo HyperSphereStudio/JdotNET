@@ -1,9 +1,29 @@
-# JULIAdotNET
+# JdotNET
 
-JuliadotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (however it does have type conversion overhead as expected). 
+JdotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (type conversion overhead is expected in using nonspecialized (Any types for instance) functions). 
 
 
-##Julia Interface from C#
+## Static Library Generator
+**In Development**
+This project generates a .NET dll that statically creates a snapshot of a julia Module and all its submodules and allows for static analysis from csharp. This library will use the most efficient techniques (caching constants, specializing functions and using cfunctions when it can) to provide for the most efficient calls to julia.
+
+Example using Base.dll:
+```csharp
+   using Base;
+   
+   Base.println("My Function");   //This function will be statically available
+```
+
+## Dynamics
+**In Development**
+Some code may be dynamically generated in julia and thus cannot be represented using the static library generator. This project will provide an abstract layer to the underlying JdotNET net-julia interface to provide more seamless usage.
+
+```csharp
+   dynamic Base = JPrimitive.BaseM;
+   Base.println("My Function");  //JdotNET will dynamically resolve and cache this function. It is extremely recommended to locally cache functions outside loops.
+```
+
+##JdotNet Julia-Net Interface#
 
 ### Launching Julia
 ```csharp
@@ -19,218 +39,39 @@ int v = (int) Julia.Eval("2 * 2");
 Julia.Exit(0); //Even if your program terminates after you should call this. It runs the finalizers and stuff 
 ```
 
-### Structs
+### Any
+The Any class represents a boxed Julia value. There is many built in default conversions from native NET types to the Any type which can be utilized via the Any constructor.
+
 ```csharp
-
-   #You have two choices, allocate a struct or create a struct.
-   #Allocating directly sets the memory, creating will call a constructor of the struct
+   Julia.Init();
+   var v25 = new Any(5) * 5; //The second 5 will be auto converted to Any then the operator '*' will be invoked on both arguments
    
-   var myAllocatedStruct = Julia.AllocStruct(JLType.JLRef, 3);   //Will throw error
-   var myCreatedStuct = JLType.JLRef.Create(3);   //Will call constructor
-```
-
-### Functions
-```csharp
-  JLFun fun = Julia.Eval("t(x::Int) = Int32(x * 2)");
-  JLSvec ParameterTypes = fun.ParameterTypes;
-  JLType willbeInt64 = fun.ParameterTypes[1];
-  JLType willBeInt32 = fun.ReturnType;
-  
-  JLVal resultWillBe4 = fun.Invoke(2);
-```
-
-### Values
-```csharp
-   //Auto alloc to Julia
-   var val = new JLVal(3);
-
-   //Manual Type Unboxing
-   long netVal = val.UnboxInt64();
+   //Arrays are passed by pointer value so there is no copying cost. Keep in mind that if julia mutates the array, it will also be affected in c#
+   var myNetArray = new []{1, 2, 3, 4, 5};
+   var myJuliaArray = new Any(myNetArray);
+   Julia.Eval("f(x) = x .* 2").Invoke(myJuliaArray);
+   //myNetArray will now be {2, 4, 6, 8, 10}
    
-   //Auto Unboxing
-   object newVal2 = val.Value;
-```
-
-### Arrays
-```csharp
-   JLArray arr = Julia.Eval("[2, 3, 4]")
+   //Search for a Julia Module lets say its called Main.MyModule:
+   var myModule = JPrimitive.MainM.GetGlobal("MyModule");
    
-   //Unpack to .net
-   object[] o = arr.UnboxArray();
+   //Search for Function add! in MyModule
+   var add = myModule.GetFunction("add!");
    
-   var a = new int[]{2, 3, 4};
+   //You have several choices of invoking add
+   //The first is using Invoke. This is the safest way to invoke as it provides features like exception handling
+   add.Invoke(2, 2);
    
-   //Copy to a Julia Array. Dont use this method if you know an object is an array though. There are faster methods!
-   var v = new JLVal(a);
+   //The second is using Unsafe Invoke. This is unsafe and should only be used in time critcal code that is stable.
+   add.UnsafeInvoke(2, 2);
    
-   //Fast Array Copy From .NET. This will deal with direct memory transfer rather then boxing/unboxing for unmanaged types
-   var v2 = JLArray.CreateArray(a);
+   //The final way which is still in development is retrieving the function as a native delegate pointer into .net and invoking it directly.
+   Func<int, int, int> f = add.GetDelegate<int, int, int>();
+   f(2, 2); //Fastest way to invoke but it is also unsafe. You should periodically check for exceptions when using this.
+   Julia.CheckExceptions();
    
-   //Fast Array Copy From Julia. This will deal with direct memory transfer rather then boxing/unboxing for unmanaged types
-   int[] v2 = v2.UnboxArray<int>();
-   
-   JLType elementType = arr.ElType;
+   Julia.Exit(0);
 ```
-
-### Exception Handling
-```csharp
-  JLFun fun = Julia.Eval("t(x) = sqrt(x)");
-  fun.Invoke(5).Println();   //Exception Checking
-  fun.UnsafeInvoke(5).Println();   //No Exception Checking
-  Julia.Exit(0);  
-```
-
-
-### Garbage Collection
-You are (at the current moment of this project) responsible for ensuring object safety on both .NET and Julia. When you make calls to either language, the GC could activate and invalidate the reference you hold in the other language unless you pin it!
-
-There are two forms of Garbage Collector Pinning: Static & Stack.
-
-Static pinning is meant for objects with a long life span (could exist forever).
-Stack pinning is meant for objects with a short life span.
-
-### CSharp Static Garbage Collector Pinning
-```csharp
-  JLArray myArr = new JLArray(JLType.Int64, 5);  //Allocate Int64 array of length 5
-  
-  var handle = myArr.Pin();    //Pin the Object 
-  
-  //Stuff calling Julia Functions
-  
-  handle.Free();   //Optional, handle destructor will auto call it. This is in case you want it freed earlier
-```
-
-### CSharp Stack Garbage Collector Pinning
-```csharp
-    JLVal v = Julia.Eval("2 * 2");
-    JLVal v2 = Julia.Eval("Hi");
-    Julia.GC_PUSH(v, v2);
-
-    //Do Stuff with v without it being collected
-
-    Julia.GC_POP();    
-```
-
-## C# from Julia
-
-The Julia.NET API also has a reverse calling API to call .NET from Julia. This also uses the C interface making it super fast (compared to message protocol based language interop systems. It depends on reflection which is the factor that slows it down compared to normal C# code). Drew ideas of syntax from https://github.com/azurefx/DotNET.jl
-
-### Launching C# from Julia
-```julia
-using JULIAdotNET
-using JULIAdotNET.JuliaInterface
-
-handle = Init() #Keep handle alive as long as you want .NET to be alive
-
-sharpList = T"System.Collections.Generic.List`1".new[T"System.Int64"]()
-```
-
-Lets say we have the following C# classes:
-```csharp
-namespace Test{
-   public class ReflectionTestClass{
-        public long g;
-        public static int TestStaticField = 5;
-        public ReflectionTestClass(long g) { this.g = g; }
-        public long InstanceMethod() => 5;
-        public static long StaticMethod() => 5;
-        public static long StaticGenericMethod<T>() => 3;
-    }
-
-    public class ReflectionGenericTestClass<T>
-    {
-        public T g;
-        public ReflectionGenericTestClass(T g) { this.g = g; }
-    }
-}
-```
-
-### Accessing Sharp Types From Julia
-The Sharp Type object allows one to access .NET class fields, methods and constructors from julia
-```julia
-   myClass = T"Test.ReflectionTestClass"   #<= Perform Assembly Search and Return the Sharp Type
-   
-   myClass2 = P"Test.ReflectionTestClass"   #<= Perform one time assembly search and store the sharp type in a internal array (Reccommended for fast lookups)
-   
-   myClass3 = G"Test.ReflectionTestClass"   #Get from internal array
-   
-   myClass4 = R"Test.ReflectionTestClass"   #Remove from internal array
-```
-
-The using statement From Julia enables a user to shorten the length of a type name required
-```julia
-   myClass1 = T"System.Int64"   #<= Will Work But It is long to type
-   myClass2 = T"Int64"   #<= Will Fail
-   @netusing System
-   myClass3 = T"Int64"   #<= Will Work
-```
-
-### Field Invokation
-```julia
-   @netusing Test
-   shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
-   
-   T"ReflectionTestClass".TestStateField[] = 3 #To Set a Field. An error will occur if you dont put [].
-```
-
-### Method Invokation
-```julia
-   @netusing Test
-   @netusing System
-   shouldBe5 = T"ReflectionTestClass".TestStateField[]   #< Requires [] to actually get the field. If you dont put [] or () then it will just return the FieldInfo object
-   shouldBe5 = T"ReflectionTestClass".StaticMethod[]() #To call a method. If you dont put [] or () then it will just return the MethodInfo object
-   shouldBe3 = T"ReflectionTestClass".StaticGenericMethod[T"Int64"]() "To call a generic method, put the generic types in []
-```
-
-### Constructor Invokation
-```julia
-   @netusing Test
-   @netusing System
-   item = T""TestJuliaInterface.ReflectionTestClass"".new[](3)     #To call a constructor.  If you dont put [] or () then it will just return the ConstructorInfo object
-   shouldBe5 = item.InstanceMethod[]();   #To call a instance method
-   
-   shouldBe3 = item.g[]       #To Access a instance field
-   
-   myGenericItem = T"TestJuliaInterface.ReflectionGenericTestClass`1".new[T"System.Int64"](3)    #To Create a generic instance of an object, put the generic types in [].
-   
-```
-
-### Boxing/Unboxing
-Boxing/Unboxing is converting a julia value from/to a sharp value from julia
-```julia
-   boxed5 = sharpbox(5)   #Will return the sharp object of the long value "5"
-   shouldBe5 = shapunbox(boxed5) #Will unbox the sharp object and return to native julia value
-```
-
-### Julia Garbage Collector Pinning
-```julia
-   handle = pin(sharpbox(5))
-   #Stuff calling Sharp Functions
-   free(handle) #Will also auto free. You can also treat it like stream and put it in do end block
-```
-
-## Exposing custom functions as native functions to julia
-### From C#
-```csharp
-   public unsafe delegate IntPtr JuliaNativeInterface(IntPtr* data);
-   
-   //Example from NativeSharp.cs that we want to expose to julia
-   public static JLVal /*Use this to manipulate julia objects to/from julia*/ GetMethod(NativeObject<Type> /*Use this to manipulate sharp objects to/from julia*/ t, NativeString /*Transfer strings*/ name) => GetMethod(t.Value, name.Value);
-   
-   //Register the method. You must increment the pointer for each argument left to right
-   NativeSharp.RegisterSharpFunction("GetMethodByName", data => GetMethod(data++, data));
-```
-### From julia
-```julia
-   //Generate the function and insert it into current module
-                  Function Name     Function Arguments Exposed to Julia       Convert to Native Objects
-   @sharpfunction(GetMethodByName, (type::SharpType, name::AbstractString), (NativeObject(type), NativeString(name)))
-   
-   //Using the function
-   someRandomType::SharpType
-   sharpMethod = GetMethodByName(someRandomType, "MyMethod")
-```
-
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
