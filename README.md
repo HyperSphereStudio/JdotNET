@@ -1,6 +1,6 @@
 # JdotNET
 
-JdotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (type conversion overhead is expected in using nonspecialized (Any types for instance) functions). 
+JdotNET is an API designed to go between .NET and the Julia Language. It utilizes C Intefaces of both languages to allow super efficient transfers between languages (type conversion overhead is expected in using nonspecialized (Any types for instance) functions). I removed the API that allowed Julia launch & interact with .NET. It was hard to maintain and I don't think it was used much compared to the other way around. I may add it back in the future.
 
 
 ## Static Library Generator
