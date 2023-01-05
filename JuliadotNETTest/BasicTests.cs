@@ -32,7 +32,12 @@ namespace JuliadotNETTest
             f.Invoke(new Any(m1), new Any(m2));
             Assert.AreEqual(m1, new []{5, 7, 9}, "Array Add Failure");
             
+            var m3 = new[,] { {2, 3, 4}, {8, 9, 10} };
+            var m4 = new[,] { {1, 2, 3}, {4, 5, 6} };
+
+            f.Invoke(new Any(m3), new Any(m4));
             
+            Assert.AreEqual(m3, new[,] { {3, 5, 7}, {12, 14, 16} }, "Multidimensional Array Add Failure");
         }
     }
 }

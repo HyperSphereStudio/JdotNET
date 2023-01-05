@@ -5,7 +5,7 @@ using Base;
 namespace JULIAdotNET{
     public static partial class JPrimitive {
         public static JModule BaseM, CoreM, MainM;
-        public static JType ModuleT, TypeT, FunctionT, MethodT, UnionT, IntegerT, AbstractFloatT, StringT, PtrT;
+        public static JType ModuleT, TypeT, FunctionT, MethodT, UnionT, IntegerT, AbstractFloatT, StringT, PtrT, PermutedDimsArrayT;
         public static JType BoolT, CharT, Float64T, Float32T, Float16T, Int64T, Int32T, Int16T, Int8T, UInt64T, UInt32T, UInt16T, UInt8T, ArrayT;
         public static Any sprintF, showerrorF, catch_backtraceF, stringF, getpropertyF, setpropertyNotF, namesF, makentupleF, writeSharpArrayF, maketupleF, ievalF, getindexF, setindexNotF, lengthF, iterateF, EqualityF, InequalityF, GreaterThanF, LessThanF, GreaterThanOrEqualF, LessThanOrEqualF, NotF, OnesComplementF, ExclusiveOrF, BitwiseAndF, BitwiseOrF, ModulusF, MultiplyF, AdditionF, SubtractionF, DivisionF, RightShiftF, LeftShiftF, typeofF, hashF, ismutableF, isabstracttypeF, isimmutableF, isprimitivetypeF, sizeofF, parentmoduleF, nameofF, fieldcountF, fieldnameF, fieldoffsetF, fieldtypeF;
         
@@ -42,8 +42,8 @@ namespace JULIAdotNET{
 end end; using .SharpModule");
             
             var writeSharpArray = Julia.Eval("writeSharpArray");
-            fixed (Any* values = new Any[72]) {
-                var syms = Julia.Eval("[Base,Core,Main,sprint,showerror,catch_backtrace,string,getproperty,setproperty!,names,makentuple,writeSharpArray,maketuple,ieval,getindex,setindex!,length,iterate,Module,Type,Function,Method,Union,Integer,AbstractFloat,String,Ptr,==,!=,>,<,>=,<=,!,~,^,&,|,rem,*,+,-,/,>>,<<,typeof,hash,ismutable,isabstracttype,isimmutable,isprimitivetype,sizeof,parentmodule,nameof,fieldcount,fieldname,fieldoffset,fieldtype,Bool,Char,Float64,Float32,Float16,Int64,Int32,Int16,Int8,UInt64,UInt32,UInt16,UInt8,Array]");
+            fixed (Any* values = new Any[73]) {
+                var syms = Julia.Eval("[Base,Core,Main,sprint,showerror,catch_backtrace,string,getproperty,setproperty!,names,makentuple,writeSharpArray,maketuple,ieval,getindex,setindex!,length,iterate,Module,Type,Function,Method,Union,Integer,AbstractFloat,String,Ptr,==,!=,>,<,>=,<=,!,~,^,&,|,rem,*,+,-,/,>>,<<,typeof,hash,ismutable,isabstracttype,isimmutable,isprimitivetype,sizeof,parentmodule,nameof,fieldcount,fieldname,fieldoffset,fieldtype,PermutedDimsArray,Bool,Char,Float64,Float32,Float16,Int64,Int32,Int16,Int8,UInt64,UInt32,UInt16,UInt8,Array]");
                 writeSharpArray.Invoke(new Any(values), syms);
                 BaseM = values[0];
 				CoreM = values[1];
@@ -57,6 +57,7 @@ end end; using .SharpModule");
 				AbstractFloatT = values[24];
 				StringT = values[25];
 				PtrT = values[26];
+				PermutedDimsArrayT = values[58];
                 sprintF = values[3];
 				showerrorF = values[4];
 				catch_backtraceF = values[5];
@@ -103,20 +104,20 @@ end end; using .SharpModule");
 				fieldnameF = values[55];
 				fieldoffsetF = values[56];
 				fieldtypeF = values[57];
-                BoolT = values[58];
-				CharT = values[59];
-				Float64T = values[60];
-				Float32T = values[61];
-				Float16T = values[62];
-				Int64T = values[63];
-				Int32T = values[64];
-				Int16T = values[65];
-				Int8T = values[66];
-				UInt64T = values[67];
-				UInt32T = values[68];
-				UInt16T = values[69];
-				UInt8T = values[70];
-				ArrayT = values[71];
+                BoolT = values[59];
+				CharT = values[60];
+				Float64T = values[61];
+				Float32T = values[62];
+				Float16T = values[63];
+				Int64T = values[64];
+				Int32T = values[65];
+				Int16T = values[66];
+				Int8T = values[67];
+				UInt64T = values[68];
+				UInt32T = values[69];
+				UInt16T = values[70];
+				UInt8T = values[71];
+				ArrayT = values[72];
                  
                 RegisterPrimitive(typeof(bool), BoolT);
 				RegisterPrimitive(typeof(char), CharT);

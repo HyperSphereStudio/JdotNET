@@ -108,11 +108,15 @@ namespace JULIAdotNET
             if (a.Rank == 1)
                 _ptr = JuliaCalls.jl_ptr_to_array_1d(aType, ptr, a.Length, own ? 1 : 0);
             else {
-                int* dims = stackalloc int[a.Rank];
+                long* dims = stackalloc long[a.Rank];
                 for (int i = 0; i < a.Rank; i++)
-                    dims[i] = a.GetLength(i);
-                var dimsTuple = JPrimitive.makentupleF.Invoke(JPrimitive.UInt32T, a.Rank, new(dims));
-                _ptr = JuliaCalls.jl_ptr_to_array(aType, ptr, dimsTuple, own ? 1 : 0);
+                    dims[i] = a.GetLength(a.Rank - (i + 1));
+                var dimT = JPrimitive.makentupleF.Invoke(JPrimitive.Int64T, a.Rank, new(dims));
+                _ptr = JuliaCalls.jl_ptr_to_array(aType, ptr, dimT, own ? 1 : 0);
+                for (int i = 0; i < a.Rank; i++)
+                    dims[i] = a.Rank - i;
+                dimT = JPrimitive.makentupleF.Invoke(JPrimitive.Int64T, a.Rank, new(dims));
+                _ptr = JPrimitive.PermutedDimsArrayT.Create(_ptr, dimT);
             }
         }
 

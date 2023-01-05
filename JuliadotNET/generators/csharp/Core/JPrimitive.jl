@@ -32,7 +32,7 @@ symbols = [Base, Core, Main,
     ==, !=, >, <, >=, <=, !, ~, ^, &, |, %, *, +, -, /, >>, <<,
     typeof, hash,
     ismutable, isabstracttype, isimmutable, isprimitivetype, sizeof, parentmodule, nameof,
-    fieldcount, fieldname, fieldoffset, fieldtype]
+    fieldcount, fieldname, fieldoffset, fieldtype, PermutedDimsArray]
     
 primitiveTypeConversions = [
     Bool => "bool",

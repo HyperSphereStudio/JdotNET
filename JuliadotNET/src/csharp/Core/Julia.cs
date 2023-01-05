@@ -101,6 +101,10 @@ namespace JULIAdotNET
         public static void PUSH_GC(Span<Any> values){
             lock (_gclock) JuliaGC.JL_GC_PUSHARGS(values);
         }
+        public static void PUSH_GC(Any a1) => PUSH_GC(stackalloc Any[] { a1 });
+        public static void PUSH_GC(Any a1, Any a2) => PUSH_GC(stackalloc Any[] { a1, a2});
+        public static void PUSH_GC(Any a1, Any a2, Any a3) => PUSH_GC(stackalloc Any[] { a1, a2, a3});
+        public static void PUSH_GC(Any a1, Any a2, Any a3, Any a4) => PUSH_GC(stackalloc Any[] { a1, a2, a3, a4});
 
         public static void POP_GC(){
             lock (_gclock) JuliaGC.JL_GC_POP();

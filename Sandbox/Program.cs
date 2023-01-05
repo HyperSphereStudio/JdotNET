@@ -18,12 +18,16 @@ class Program {
                     using Main.T
                     return T");
 
-            var m1 = new[] { 2, 3, 4 };
-            var m2 = new[] { 3, 4, 5 };
-
-            myModule.GetFunction("add!").Invoke(new Any(m1), new Any(m2));
-            string.Join(",", m1).Println();
-
+            var m1 = new[,] { {2, 3, 4}, {8, 9, 10} };
+            var m2 = new[,] { {1, 2, 3}, {4, 5, 6} };
+            var j1 = new Any(m1);
+            var j2 = new Any(m2);
+            
+            Julia.PUSH_GC(j1, j2);
+            myModule.GetFunction("add!").Invoke(j1, j2).Println();
+            j1.Println();
+            Julia.POP_GC();
+            
             Julia.Exit();
         }catch (Exception e) {
             e.PrintExp();
