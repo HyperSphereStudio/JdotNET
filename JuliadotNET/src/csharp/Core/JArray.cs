@@ -100,13 +100,10 @@ namespace JULIAdotNET
         public JArray(JType type, long row, long col) : this(JuliaCalls.jl_alloc_array_2d(JuliaCalls.jl_apply_array_type(type, 2), (nint) row, (nint) col)) { }
         public JArray(JType type, long row, long col, long depth) : this(JuliaCalls.jl_alloc_array_3d(JuliaCalls.jl_apply_array_type(type, 3), (nint) row, (nint) col, (nint) depth)) { }
 
-        public unsafe JArray(Array a, bool own = false, bool arrayIsFixed = false) {
-            if(!arrayIsFixed)
-                GCHandle.Alloc(a, GCHandleType.Pinned);
-            
+        public unsafe JArray(Array a, bool own = false) {
             var elType = JType.GetJuliaTypeFromNetType(a.GetType().GetElementType());
             var aType = JuliaCalls.jl_apply_array_type(elType, a.Rank);
-            IntPtr ptr =  (IntPtr) Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(a));
+            var ptr = GCHandle.Alloc(a, GCHandleType.Pinned).AddrOfPinnedObject();
 
             if (a.Rank == 1)
                 _ptr = JuliaCalls.jl_ptr_to_array_1d(aType, ptr, a.Length, own ? 1 : 0);

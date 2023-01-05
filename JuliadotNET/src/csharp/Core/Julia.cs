@@ -50,7 +50,7 @@ namespace JULIAdotNET
                 var time = DateTime.Now - startTime;
                 var bytes = GC.GetTotalMemory(false) - memSize;
                 Console.WriteLine("Initialized Julia.NET in " + time.Milliseconds + " ms and " + bytes + " bytes");
-            }catch (Exception e) {
+            }catch (Exception) {
                 Console.WriteLine("Failed To Initialize Julia.NET!");
                 throw;
             }

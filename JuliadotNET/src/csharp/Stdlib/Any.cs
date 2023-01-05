@@ -81,7 +81,7 @@ namespace Base
         public Any(Array a) : this(new JArray(a))
         {
         }
-        public Any(Array a, bool own, bool isFixed) : this(new JArray(a, own, isFixed))
+        public Any(Array a, bool own) : this(new JArray(a, own))
         {
         }
         public Any(object o) : this(CreateFromObject(o)){}
@@ -405,6 +405,7 @@ namespace Base
 
         public override int GetHashCode() => (int)JPrimitive.hashF.Invoke1(this);
         public DynamicMetaObject GetMetaObject(Expression parameter) => new JuliaDynamic(parameter, new(this));
+        public override bool Equals(object o) => o is Any a ? a == (Any) o : false;
 
         #endregion
     }
