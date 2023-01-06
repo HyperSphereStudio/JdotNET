@@ -59,15 +59,23 @@ The Any class represents a boxed Julia value. There is many built in default con
    var add = myModule.GetFunction("add!");
    
    //You have several choices of invoking add
-   //The first is using Invoke. This is the safest way to invoke as it provides features like exception handling
+   
+   //The first is using Invoke (SLOWEST). This is the safest way to invoke as it provides features like exception handling
    add.Invoke(2, 2);
    
    //The second is using Unsafe Invoke. This is unsafe and should only be used in time critcal code that is stable.
    add.UnsafeInvoke(2, 2);
    
-   //The final way which is still in development is retrieving the function as a native delegate pointer into .net and invoking it directly.
-   Func<int, int, int> f = add.GetDelegate<int, int, int>();
-   f(2, 2); //Fastest way to invoke but it is also unsafe. You should periodically check for exceptions when using this.
+   //Native Pointer of Specialized Methods. (FASTEST) This is unsafe so you should periodically check for exceptions
+    var f = Julia.Eval(@"add(a, b) = a + b");   //Gets the julia function pointer add
+    
+    public delegate int Add(int a, int b); /*Declared somewhere*/
+    
+    Add add = f.GetDelegate<Add>();             //Compile f to a sharp function pointer Add
+    var aAdd = f.GetDelegate<int, int, int>();  //Compile f to a sharp anonymous function pointer. Does not require a declared delegate
+    
+    int answer = add(3, 4);
+    int answer2 = aAdd(4, 5);
    Julia.CheckExceptions();
    
    Julia.Exit(0);
