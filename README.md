@@ -52,6 +52,10 @@ The Any class represents a boxed Julia value. There is many built in default con
    Julia.Eval("f(x) = x .* 2").Invoke(myJuliaArray);
    //myNetArray will now be {2, 4, 6, 8, 10}
    
+   //GC
+   Julia.GC_PUSH(myJuliaArray); //Will not be GC'd
+   Julia.GC_POP();              //Can now be GC'd
+    
    //Search for a Julia Module lets say its called Main.MyModule:
    var myModule = JPrimitive.MainM.GetGlobal("MyModule");
    
